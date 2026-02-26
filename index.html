@@ -11,7 +11,7 @@
 <style>
   /* ==================== THEMING ==================== */
   :root {
-    /* Tema CLARO (valores por defecto, se aplican cuando data-theme="light") */
+    /* Tema CLARO */
     --bg: #f4f5f7;
     --card: #ffffff;
     --text: #111827;
@@ -23,15 +23,12 @@
     --warn: #8b5e34;
     --gray: #6b7280;
     --chip: #f3f4f6;
-
-    /* Colores de gráficos (claro) */
     --chart-grid: rgba(0, 0, 0, 0.08);
     --chart-ticks: #374151;
     --chart-legend: #111827;
   }
-
-  /* Tema OSCURO (por defecto al cargar; puedes cambiarlo en JS) */
   :root[data-theme="dark"] {
+    /* Tema OSCURO (por defecto si no hay guardado) */
     --bg: #0f1216;
     --card: #171a1f;
     --text: #e5e7eb;
@@ -43,8 +40,6 @@
     --warn: #8b5e34;
     --gray: #6b7280;
     --chip: #1f2733;
-
-    /* Gráficos (oscuro) */
     --chart-grid: rgba(148,163,184,0.15);
     --chart-ticks: #cbd5e1;
     --chart-legend: #e5e7eb;
@@ -53,18 +48,12 @@
   * { box-sizing: border-box; }
   body {
     font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    margin: 0;
-    padding: 12px;
-    background: var(--bg);
-    color: var(--text);
+    margin: 0; padding: 12px; background: var(--bg); color: var(--text);
   }
   .container { max-width: 1100px; margin: 0 auto; }
   .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    padding: 12px; border-radius: 10px; margin-bottom: 12px;
     box-shadow: 0 1px 8px rgba(0,0,0,.15);
   }
   h1,h2,h3 { margin: 0 0 10px 0; font-weight: 700; }
@@ -78,25 +67,21 @@
   /* Switch de tema */
   .header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .theme-toggle { display:flex; align-items:center; gap:8px; }
-  .switch {
-    position: relative; display: inline-block; width: 48px; height: 26px;
-  }
+  .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .slider {
-    position: absolute; cursor: pointer; inset: 0;
+    position: absolute; cursor: pointer; inset: 0; border: 1px solid var(--border);
     background-color: #64748b; transition: .2s; border-radius: 999px;
-    border: 1px solid var(--border);
   }
   .slider:before {
-    position: absolute; content: "";
-    height: 20px; width: 20px; left: 3px; top: 2px;
+    position: absolute; content: ""; height: 20px; width: 20px; left: 3px; top: 2px;
     background-color: white; transition: .2s; border-radius: 50%;
   }
   input:checked + .slider { background-color: #ef4444; }
   input:checked + .slider:before { transform: translateX(22px); }
   .theme-label { font-size: 13px; color: var(--muted); }
 
-  /* Formulario compacto plegable */
+  /* Details/summary (secciones plegables) */
   details { border-radius: 8px; }
   summary {
     list-style: none; cursor: pointer; font-weight: 700;
@@ -109,6 +94,7 @@
     color: var(--primary);
     padding:2px 8px; border-radius:12px; font-size:12px; border: 1px solid var(--border);
   }
+
   .row { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:8px; }
   label { display:block; margin:4px 0 3px; font-weight:600; font-size:13px; color: var(--muted); }
   input, select {
@@ -116,7 +102,6 @@
     background:#0b0e12; color: var(--text);
   }
   :root[data-theme="light"] input, :root[data-theme="light"] select { background:#ffffff; color: var(--text); }
-
   input::placeholder { color:#7a8699; }
 
   /* Botones */
@@ -142,28 +127,38 @@
   .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .toolbar .grow { flex:1; }
 
-  /* Gráficos compactos en una sola pantalla */
-  .charts { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:10px; }
-  .charts .chart-card { padding:10px; border: 1px solid var(--border); border-radius: 8px; background: #0b0f14; }
+  /* Gráficos compactos (proporción correcta) */
+  .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .charts .chart-card {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #0b0f14;
+    height: 180px; /* altura fija del contenedor */
+  }
   :root[data-theme="light"] .charts .chart-card { background:#ffffff; }
-  canvas { width:100% !important; height:120px !important; } /* ALTURA REDUCIDA */
+  .charts .chart-card canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
 
-  /* Diálogo de edición */
-  dialog { border:none; border-radius:10px; width:min(520px, 96vw); padding:12px; background: var(--card); color: var(--text); border: 1px solid var(--border); }
-  dialog::backdrop { background: rgba(0,0,0,.45); }
+  /* Dirección con botón al lado */
+  .direccion-group { display:flex; gap:6px; align-items:flex-end; }
+  .direccion-group > div { flex: 1; }
 </style>
 </head>
 <body>
 <div class="container">
 
+  <!-- Encabezado con switch -->
   <div class="card">
     <div class="header-row">
       <div>
         <h1>Contador de Alarmas 2026 🔥</h1>
-        <div class="muted">Switch claro/oscuro, dashboard compacto y formulario plegable.</div>
+        <div class="muted">Registrar (plegado) → Dashboard visible → Registros (plegado). Tema claro/oscuro con switch.</div>
       </div>
 
-      <!-- Switch de tema -->
       <div class="theme-toggle">
         <span class="theme-label">☀️</span>
         <label class="switch" aria-label="Cambiar tema claro/oscuro">
@@ -175,7 +170,7 @@
     </div>
   </div>
 
-  <!-- Apartado plegable con formulario y acciones -->
+  <!-- 1) REGISTRAR (PLEGADO por defecto) -->
   <div class="card">
     <details>
       <summary>➕ Registrar alarma <span class="badge">compacto</span></summary>
@@ -187,6 +182,24 @@
         <div>
           <label for="hora">Hora del Incendio</label>
           <input type="time" id="hora" required />
+        </div>
+        <div>
+          <label for="cargo">Cargo</label>
+          <select id="cargo" required>
+            <option value="Comandante 1">Comandante 1</option>
+            <option value="Comandante 2">Comandante 2</option>
+            <option value="Comandante 3">Comandante 3</option>
+            <option value="Comandante 4">Comandante 4</option>
+            <option value="Capitán">Capitán</option>
+            <option value="Teniente 1°">Teniente 1°</option>
+            <option value="Teniente 2°">Teniente 2°</option>
+            <option value="Teniente 3°">Teniente 3°</option>
+            <option value="Inspector">Inspector</option>
+            <option value="Voluntario">Voluntario</option>
+            <option value="Central">Central</option>
+            <option value="Cuartelero">Cuartelero</option>
+            <option value="Canje">Canje</option>
+          </select>
         </div>
         <div>
           <label for="obac">OBAC</label>
@@ -207,6 +220,17 @@
             <option value="Forestal">Forestal</option>
           </select>
         </div>
+
+        <!-- Dirección + botón de ubicación -->
+        <div class="direccion-group" style="grid-column: 1 / -1;">
+          <div>
+            <label for="direccion">Dirección (opcional)</label>
+            <input type="text" id="direccion" placeholder="Ej: Av. Siempre Viva 742, Comuna" />
+          </div>
+          <div style="width:fit-content;">
+            <button type="button" id="btnGeo" class="secondary" title="Usar ubicación actual">📍 Usar ubicación</button>
+          </div>
+        </div>
       </div>
 
       <div class="actions">
@@ -220,59 +244,65 @@
         <button id="btnBorrarTodo" class="warn">🗑️ Borrar todo</button>
       </div>
       <div class="muted" style="margin-top:6px">
-        * Los datos se guardan localmente en este navegador (LocalStorage). Para sincronizar entre equipos podemos conectar Google Sheets o Firebase si te interesa.
+        * Los datos se guardan localmente (LocalStorage). Para sincronizar entre equipos podemos conectar Google Sheets o Firebase si te sirve.
       </div>
     </details>
   </div>
 
-  <!-- Filtros y tabla -->
-  <div class="card">
-    <div class="toolbar">
-      <h2 style="margin-right:auto;">Registros</h2>
-      <div>
-        <label class="muted" for="filtroMes">Mes (AAAA‑MM)</label>
-        <input type="month" id="filtroMes" />
-      </div>
-      <div class="grow">
-        <label class="muted" for="buscar">Buscar (OBAC / Alarma / Tipo)</label>
-        <input type="text" id="buscar" placeholder="Buscar..." />
-      </div>
-    </div>
-
-    <div id="resumen" class="muted" style="margin-top:6px"></div>
-
-    <table id="tabla">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Hora</th>
-          <th>OBAC</th>
-          <th>Alarma</th>
-          <th>Tipo</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- Gráficos: todos compactos en una grilla -->
+  <!-- 2) DASHBOARD (siempre visible) -->
   <div class="card">
     <h2>Dashboard</h2>
     <div class="charts">
       <div class="chart-card">
-        <h3 class="muted">Por Alarma</h3>
+        <h3 class="muted" style="margin-bottom:6px;">Por Alarma</h3>
         <canvas id="grafAlarma"></canvas>
       </div>
       <div class="chart-card">
-        <h3 class="muted">Por Tipo</h3>
+        <h3 class="muted" style="margin-bottom:6px;">Por Tipo</h3>
         <canvas id="grafTipo"></canvas>
       </div>
       <div class="chart-card">
-        <h3 class="muted">Por Mes (AAAA‑MM)</h3>
+        <h3 class="muted" style="margin-bottom:6px;">Por Mes (AAAA‑MM)</h3>
         <canvas id="grafMes"></canvas>
       </div>
     </div>
+  </div>
+
+  <!-- 3) REGISTROS (PLEGABLE) -->
+  <div class="card">
+    <details>
+      <summary>📄 Registros <span class="badge">tabla</span></summary>
+
+      <div class="toolbar" style="margin-top:8px;">
+        <h2 style="margin-right:auto;">&nbsp;</h2>
+        <div>
+          <label class="muted" for="filtroMes">Mes (AAAA‑MM)</label>
+          <input type="month" id="filtroMes" />
+        </div>
+        <div class="grow">
+          <label class="muted" for="buscar">Buscar (Cargo / OBAC / Alarma / Tipo / Dirección)</label>
+          <input type="text" id="buscar" placeholder="Buscar..." />
+        </div>
+      </div>
+
+      <div id="resumen" class="muted" style="margin-top:6px"></div>
+
+      <table id="tabla">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Cargo</th>
+            <th>OBAC</th>
+            <th>Alarma</th>
+            <th>Tipo</th>
+            <th>Dirección</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </details>
   </div>
 
   <!-- Diálogo para editar -->
@@ -287,6 +317,24 @@
         <div>
           <label for="e_hora">Hora</label>
           <input type="time" id="e_hora" required />
+        </div>
+        <div>
+          <label for="e_cargo">Cargo</label>
+          <select id="e_cargo" required>
+            <option value="Comandante 1">Comandante 1</option>
+            <option value="Comandante 2">Comandante 2</option>
+            <option value="Comandante 3">Comandante 3</option>
+            <option value="Comandante 4">Comandante 4</option>
+            <option value="Capitán">Capitán</option>
+            <option value="Teniente 1°">Teniente 1°</option>
+            <option value="Teniente 2°">Teniente 2°</option>
+            <option value="Teniente 3°">Teniente 3°</option>
+            <option value="Inspector">Inspector</option>
+            <option value="Voluntario">Voluntario</option>
+            <option value="Central">Central</option>
+            <option value="Cuartelero">Cuartelero</option>
+            <option value="Canje">Canje</option>
+          </select>
         </div>
         <div>
           <label for="e_obac">OBAC</label>
@@ -307,6 +355,10 @@
             <option value="Forestal">Forestal</option>
           </select>
         </div>
+        <div style="grid-column: 1 / -1;">
+          <label for="e_direccion">Dirección</label>
+          <input type="text" id="e_direccion" />
+        </div>
       </div>
       <div class="actions" style="margin-top:10px">
         <button type="submit">💾 Guardar</button>
@@ -322,14 +374,15 @@
 const KEY = "alarmas_2026";
 const KEY_THEME = "alarmas_theme";
 
-/** Carga registros desde LocalStorage; asigna id si falta (compatibilidad). */
+/** Carga registros desde LocalStorage; asegura compatibilidad con campos nuevos. */
 function cargar(){
   let arr;
-  try { arr = JSON.parse(localStorage.getItem(KEY)) || []; }
-  catch { arr = []; }
+  try { arr = JSON.parse(localStorage.getItem(KEY)) || []; } catch { arr = []; }
   let changed = false;
   arr.forEach(r => {
-    if (!r.id) { r.id = String(Date.now()) + Math.random().toString(16).slice(2); changed = true; }
+    if (!r.id)        { r.id = String(Date.now()) + Math.random().toString(16).slice(2); changed = true; }
+    if (r.cargo === undefined)     { r.cargo = ""; changed = true; }
+    if (r.direccion === undefined) { r.direccion = ""; changed = true; }
   });
   if (changed) localStorage.setItem(KEY, JSON.stringify(arr));
   return arr;
@@ -341,18 +394,14 @@ function getSystemPrefersDark(){ return window.matchMedia && window.matchMedia('
 function getSavedTheme(){ return localStorage.getItem(KEY_THEME); }
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
-  // Ajustar estado del switch
   const sw = document.getElementById('themeSwitch');
   if (sw) sw.checked = (theme === 'dark');
-  // Re-render de gráficos para aplicar colores
-  actualizarGraficos();
+  actualizarGraficos(); // re-render para aplicar colores
 }
 function initTheme(){
-  // Prioridad: guardado → sistema → dark
   const saved = getSavedTheme();
   let theme = saved || (getSystemPrefersDark() ? 'dark' : 'light');
-  // Por tu preferencia, dejamos oscuro por defecto si no hay guardado:
-  if (!saved) theme = 'dark';
+  if (!saved) theme = 'dark'; // oscuro por defecto
   applyTheme(theme);
   const sw = document.getElementById('themeSwitch');
   if (sw) {
@@ -379,11 +428,11 @@ function ordenarDesc(arr){
   });
 }
 function aplicaFiltros(arr){
-  const mes = $("#filtroMes").value; // AAAA-MM
-  const q = $("#buscar").value.toLowerCase().trim();
+  const mes = $("#filtroMes")?.value || ""; // AAAA-MM
+  const q = ($("#buscar")?.value || "").toLowerCase().trim();
   return arr.filter(d=>{
     const okMes = !mes || (d.fecha||"").startsWith(mes);
-    const text = `${d.obac} ${d.alarma} ${d.tipo}`.toLowerCase();
+    const text = `${d.cargo} ${d.obac} ${d.alarma} ${d.tipo} ${d.direccion}`.toLowerCase();
     const okQ = !q || text.includes(q);
     return okMes && okQ;
   });
@@ -398,16 +447,19 @@ function resumen(arr, mesSel){
 function renderTabla(){
   const datos = ordenarDesc(cargar());
   const filtrados = aplicaFiltros(datos);
-  const tbody = $("#tabla tbody");
+  const tbody = document.querySelector("#tabla tbody");
+  if (!tbody) return; // por si la sección está plegada y aún no se montó
   tbody.innerHTML = "";
   filtrados.forEach(d=>{
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${d.fecha||""}</td>
       <td>${d.hora||""}</td>
+      <td>${d.cargo||""}</td>
       <td>${d.obac||""}</td>
       <td>${d.alarma||""}</td>
       <td>${d.tipo||""}</td>
+      <td>${d.direccion||""}</td>
       <td>
         <button class="gray" onclick="abrirEditar('${d.id}')">Editar</button>
         <button class="warn" onclick="eliminar('${d.id}')">Eliminar</button>
@@ -416,33 +468,45 @@ function renderTabla(){
     tbody.appendChild(tr);
   });
 
-  const r = resumen(filtrados, $("#filtroMes").value);
-  $("#resumen").innerHTML =
-    `<span class="pill">Total (filtro): <b>${r.total}</b></span>
-     <span class="pill">Total del mes seleccionado: <b>${r.totalMes}</b></span>`;
+  const res = document.getElementById("resumen");
+  if (res) {
+    const r = resumen(filtrados, document.getElementById("filtroMes")?.value || "");
+    res.innerHTML =
+      `<span class="pill">Total (filtro): <b>${r.total}</b></span>
+       <span class="pill">Total del mes seleccionado: <b>${r.totalMes}</b></span>`;
+  }
 }
 
-/* ==================== Gráficos (colores según tema) ==================== */
+/* ==================== Gráficos (colores según tema + proporción correcta) ==================== */
 function themeChartOptions(){
   const cs = getComputedStyle(document.documentElement);
-  const grid = cs.getPropertyValue('--chart-grid').trim();
-  const ticks = cs.getPropertyValue('--chart-ticks').trim();
+  const grid   = cs.getPropertyValue('--chart-grid').trim();
+  const ticks  = cs.getPropertyValue('--chart-ticks').trim();
   const legend = cs.getPropertyValue('--chart-legend').trim();
 
+  const legendLabels = {
+    color: legend,
+    boxWidth: 10,
+    boxHeight: 10,
+    padding: 8,
+    usePointStyle: false,
+    font: { size: 10 }
+  };
+  const tickStyle = { color: ticks, font: { size: 10 } };
+
   return {
-    legendColor: legend,
-    ticksColor: ticks,
-    gridColor: grid,
     baseLegendBottom: {
       responsive: true,
-      plugins: { legend: { position: "bottom", labels: { color: legend } } },
+      maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom", labels: legendLabels } }
     },
     baseXY: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: ticks }, grid: { color: grid } },
-        y: { ticks: { color: ticks, precision: 0 }, grid: { color: grid }, beginAtZero: true }
+        x: { ticks: tickStyle, grid: { color: grid } },
+        y: { ticks: { ...tickStyle, precision: 0 }, grid: { color: grid }, beginAtZero: true }
       }
     }
   };
@@ -460,29 +524,45 @@ function actualizarGraficos(){
   const datos = aplicaFiltros(ordenarDesc(cargar()));
   const t = themeChartOptions();
 
-  // Por Alarma (pie)
+  // Por Alarma (DONUT) + sin borde
   const gA = agruparPor(datos, d => d.alarma);
   if (chartAlarma) chartAlarma.destroy();
-  chartAlarma = new Chart($("#grafAlarma"), {
-    type: "pie",
-    data: { labels: gA.etiquetas, datasets: [{ data: gA.valores, backgroundColor: ["#ef4444","#f97316","#eab308"] }] },
-    options: t.baseLegendBottom
-  });
-
-  // Por Tipo (doughnut)
-  const gT = agruparPor(datos, d => d.tipo);
-  if (chartTipo) chartTipo.destroy();
-  chartTipo = new Chart($("#grafTipo"), {
+  chartAlarma = new Chart(document.getElementById("grafAlarma"), {
     type: "doughnut",
-    data: { labels: gT.etiquetas, datasets: [{ data: gT.valores, backgroundColor: ["#22c55e","#06b6d4"] }] },
+    data: {
+      labels: gA.etiquetas,
+      datasets: [{
+        data: gA.valores,
+        backgroundColor: ["#ef4444","#f97316","#eab308"],
+        borderWidth: 0,
+        hoverOffset: 3
+      }]
+    },
     options: { ...t.baseLegendBottom, cutout: "55%" }
   });
 
-  // Por Mes (línea)
+  // Por Tipo (DONUT) + sin borde
+  const gT = agruparPor(datos, d => d.tipo);
+  if (chartTipo) chartTipo.destroy();
+  chartTipo = new Chart(document.getElementById("grafTipo"), {
+    type: "doughnut",
+    data: {
+      labels: gT.etiquetas,
+      datasets: [{
+        data: gT.valores,
+        backgroundColor: ["#22c55e","#06b6d4"],
+        borderWidth: 0,
+        hoverOffset: 3
+      }]
+    },
+    options: { ...t.baseLegendBottom, cutout: "55%" }
+  });
+
+  // Por Mes (LÍNEA)
   const gM = agruparPor(datos, d => (d.fecha||"").slice(0,7));
   const pares = gM.etiquetas.map((k,i)=>[k,gM.valores[i]]).sort((a,b)=>a[0].localeCompare(b[0]));
   if (chartMes) chartMes.destroy();
-  chartMes = new Chart($("#grafMes"), {
+  chartMes = new Chart(document.getElementById("grafMes"), {
     type: "line",
     data: {
       labels: pares.map(p=>p[0]),
@@ -491,7 +571,9 @@ function actualizarGraficos(){
         data: pares.map(p=>p[1]),
         borderColor:"#ef4444",
         backgroundColor:"rgba(239,68,68,.18)",
-        tension:.2, fill:true
+        pointRadius: 2,
+        tension:.2,
+        fill:true
       }]
     },
     options: t.baseXY
@@ -500,23 +582,26 @@ function actualizarGraficos(){
 
 /* ==================== CRUD ==================== */
 function validar(){
-  const fecha = $("#fecha").value;
-  const hora  = $("#hora").value;
-  const obac  = normaliza($("#obac").value);
-  const alarma= $("#alarma").value;
-  const tipo  = $("#tipo").value;
-  if (!fecha || !hora || !obac || !alarma || !tipo) return null;
-  return { fecha, hora, obac, alarma, tipo };
+  const fecha = document.getElementById("fecha").value;
+  const hora  = document.getElementById("hora").value;
+  const cargo = document.getElementById("cargo").value;
+  const obac  = normaliza(document.getElementById("obac").value);
+  const alarma= document.getElementById("alarma").value;
+  const tipo  = document.getElementById("tipo").value;
+  const direccion = normaliza(document.getElementById("direccion").value); // opcional
+  if (!fecha || !hora || !cargo || !obac || !alarma || !tipo) return null;
+  return { fecha, hora, cargo, obac, alarma, tipo, direccion };
 }
 function guardarRegistro(){
   const reg = validar();
-  if (!reg) { alert("Completa todos los campos."); return; }
+  if (!reg) { alert("Completa todos los campos obligatorios."); return; }
   const arr = cargar();
   arr.push({ id: String(Date.now())+Math.random().toString(16).slice(2), ...reg });
   guardar(arr);
-  ["#fecha","#hora","#obac"].forEach(s => $(s).value = "");
-  $("#alarma").value = "PRIMERA ALARMA";
-  $("#tipo").value = "Estructural";
+  ["fecha","hora","obac","direccion"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("cargo").value  = "Comandante 1";
+  document.getElementById("alarma").value = "PRIMERA ALARMA";
+  document.getElementById("tipo").value   = "Estructural";
   renderTabla(); actualizarGraficos();
 }
 function eliminar(id){
@@ -529,12 +614,14 @@ function abrirEditar(id){
   const r = cargar().find(x => x.id === id);
   if (!r) return;
   editId = id;
-  $("#e_fecha").value  = r.fecha || "";
-  $("#e_hora").value   = r.hora  || "";
-  $("#e_obac").value   = r.obac  || "";
-  $("#e_alarma").value = r.alarma|| "PRIMERA ALARMA";
-  $("#e_tipo").value   = r.tipo  || "Estructural";
-  $("#dlgEditar").showModal();
+  document.getElementById("e_fecha").value  = r.fecha || "";
+  document.getElementById("e_hora").value   = r.hora  || "";
+  document.getElementById("e_cargo").value  = r.cargo || "Comandante 1";
+  document.getElementById("e_obac").value   = r.obac  || "";
+  document.getElementById("e_alarma").value = r.alarma|| "PRIMERA ALARMA";
+  document.getElementById("e_tipo").value   = r.tipo  || "Estructural";
+  document.getElementById("e_direccion").value = r.direccion || "";
+  document.getElementById("dlgEditar").showModal();
 }
 document.getElementById("dlgEditar").addEventListener("close", ()=>{ editId=null; });
 document.querySelector("#dlgEditar form").addEventListener("submit",(ev)=>{
@@ -546,9 +633,11 @@ document.querySelector("#dlgEditar form").addEventListener("submit",(ev)=>{
       ...arr[i],
       fecha: document.getElementById("e_fecha").value,
       hora:  document.getElementById("e_hora").value,
+      cargo: document.getElementById("e_cargo").value,
       obac:  normaliza(document.getElementById("e_obac").value),
       alarma:document.getElementById("e_alarma").value,
-      tipo:  document.getElementById("e_tipo").value
+      tipo:  document.getElementById("e_tipo").value,
+      direccion: normaliza(document.getElementById("e_direccion").value)
     };
     guardar(arr);
   }
@@ -559,8 +648,11 @@ document.querySelector("#dlgEditar form").addEventListener("submit",(ev)=>{
 /* ==================== Exportar / Importar ==================== */
 function exportarCSV(){
   const arr = aplicaFiltros(ordenarDesc(cargar()));
-  let csv = "Fecha,Hora,OBAC,Alarma,Tipo\n";
-  arr.forEach(d => csv += `${d.fecha},${d.hora},${d.obac},${d.alarma},${d.tipo}\n`);
+  let csv = "Fecha,Hora,Cargo,OBAC,Alarma,Tipo,Dirección\n";
+  arr.forEach(d => {
+    const dir = (d.direccion||"").replace(/\"/g, '\"');
+    csv += `${d.fecha},${d.hora},${d.cargo},${d.obac},${d.alarma},${d.tipo},"${dir}"\n`;
+  });
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -583,7 +675,8 @@ function importarJSON(file){
       if (!Array.isArray(imported)) throw new Error("Formato inválido.");
       const norm = imported.map(d => ({
         id: d.id || String(Date.now())+Math.random().toString(16).slice(2),
-        fecha:d.fecha, hora:d.hora, obac:d.obac, alarma:d.alarma, tipo:d.tipo
+        fecha:d.fecha, hora:d.hora, cargo: d.cargo || "", obac:d.obac,
+        alarma:d.alarma, tipo:d.tipo, direccion: d.direccion || ""
       }));
       const actual = cargar();
       guardar([...actual, ...norm]);
@@ -596,6 +689,37 @@ function importarJSON(file){
   reader.readAsText(file, "utf-8");
 }
 
+/* ==================== Ubicación (rellenar Dirección) ==================== */
+async function usarUbicacion(){
+  if (!navigator.geolocation) {
+    alert("Geolocalización no soportada por este navegador.");
+    return;
+  }
+  try {
+    const pos = await new Promise((res, rej) => {
+      navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy:true, timeout:10000 });
+    });
+    const { latitude: lat, longitude: lon } = pos.coords;
+
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&addressdetails=1`;
+    let direccion = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+
+    try {
+      const resp = await fetch(url, { headers: { "Accept-Language": "es-CL,es;q=0.9" } });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.display_name) direccion = data.display_name;
+      }
+    } catch (_) { /* si falla, usamos Lat/Lon */ }
+
+    const input = document.getElementById("direccion");
+    input.value = direccion;
+    input.focus();
+  } catch (err) {
+    alert("No se pudo obtener tu ubicación. Revisa permisos de GPS/ubicación.");
+  }
+}
+
 /* ==================== Eventos ==================== */
 document.getElementById("btnGuardar").addEventListener("click", guardarRegistro);
 document.getElementById("btnExportarCSV").addEventListener("click", exportarCSV);
@@ -606,11 +730,18 @@ document.getElementById("btnBorrarTodo").addEventListener("click", ()=>{
   if (!confirm("Esto borrará todos los registros guardados localmente en este navegador. ¿Continuar?")) return;
   localStorage.removeItem(KEY); renderTabla(); actualizarGraficos();
 });
-document.getElementById("filtroMes").addEventListener("change", ()=>{ renderTabla(); actualizarGraficos(); });
-document.getElementById("buscar").addEventListener("input", ()=>{ renderTabla(); actualizarGraficos(); });
+document.getElementById("btnGeo").addEventListener("click", usarUbicacion);
+
+/* Filtros (la sección puede estar plegada; por eso comprobamos existencia) */
+document.addEventListener("change", (e)=>{
+  if (e.target && (e.target.id === "filtroMes")) { renderTabla(); actualizarGraficos(); }
+});
+document.addEventListener("input", (e)=>{
+  if (e.target && (e.target.id === "buscar")) { renderTabla(); actualizarGraficos(); }
+});
 
 /* ==================== Inicialización ==================== */
-initTheme();       // Aplica tema guardado / sistema (oscuro por defecto si nada guardado)
+initTheme();
 renderTabla();
 actualizarGraficos();
 </script>
