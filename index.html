@@ -7,7 +7,33 @@
 
 <!-- Chart.js (CDN oficial) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Firebase SDKs (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
+<script>
+// ⚠️ Tu config (ya la tengo de tu mensaje)
+const firebaseConfig = {
+  apiKey: "AIzaSyAHrcx9UK40TiW4BCFZOPHKj5XrJ_2OKBI",
+  authDomain: "alarmas-2026.firebaseapp.com",
+  projectId: "alarmas-2026",
+  storageBucket: "alarmas-2026.firebasestorage.app",
+  messagingSenderId: "522655513477",
+  appId: "1:522655513477:web:816d4bb49aff6f798f62ec",
+  measurementId: "G-5BLMH5VGHV"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Servicios que usaremos
+const db   = firebase.firestore();
+const auth = firebase.auth();
+
+// Colección en Firestore para tus registros
+const COL = 'alarmas';
+</script>
 <style>
   /* ==================== THEMING ==================== */
   :root {
