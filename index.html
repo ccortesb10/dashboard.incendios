@@ -9,295 +9,608 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-  :root { --rojo:#d32f2f; --rojo2:#b71c1c; --gris:#f2f2f2; }
-  body { font-family: system-ui, Arial; padding: 16px; background: var(--gris); }
-  .card { background: #fff; padding: 16px; border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
-  h1,h2 { margin: 0 0 12px 0; }
-  label { display:block; margin:8px 0 4px; font-weight:600; }
+  /* ==================== THEMING ==================== */
+  :root {
+    /* Tema CLARO (valores por defecto, se aplican cuando data-theme="light") */
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --text: #111827;
+    --muted: #4b5563;
+    --border: #e5e7eb;
+    --primary: #ef4444;
+    --primary-2: #dc2626;
+    --secondary: #334155;
+    --warn: #8b5e34;
+    --gray: #6b7280;
+    --chip: #f3f4f6;
+
+    /* Colores de gráficos (claro) */
+    --chart-grid: rgba(0, 0, 0, 0.08);
+    --chart-ticks: #374151;
+    --chart-legend: #111827;
+  }
+
+  /* Tema OSCURO (por defecto al cargar; puedes cambiarlo en JS) */
+  :root[data-theme="dark"] {
+    --bg: #0f1216;
+    --card: #171a1f;
+    --text: #e5e7eb;
+    --muted: #9aa4b2;
+    --border: #242a32;
+    --primary: #ef4444;
+    --primary-2: #dc2626;
+    --secondary: #334155;
+    --warn: #8b5e34;
+    --gray: #6b7280;
+    --chip: #1f2733;
+
+    /* Gráficos (oscuro) */
+    --chart-grid: rgba(148,163,184,0.15);
+    --chart-ticks: #cbd5e1;
+    --chart-legend: #e5e7eb;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    margin: 0;
+    padding: 12px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 8px rgba(0,0,0,.15);
+  }
+  h1,h2,h3 { margin: 0 0 10px 0; font-weight: 700; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .pill {
+    display:inline-block; padding:3px 8px; border-radius:999px;
+    background: var(--chip); color: var(--muted); margin-right:6px; font-size:12px;
+    border: 1px solid var(--border);
+  }
+
+  /* Switch de tema */
+  .header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .theme-toggle { display:flex; align-items:center; gap:8px; }
+  .switch {
+    position: relative; display: inline-block; width: 48px; height: 26px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background-color: #64748b; transition: .2s; border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+  .slider:before {
+    position: absolute; content: "";
+    height: 20px; width: 20px; left: 3px; top: 2px;
+    background-color: white; transition: .2s; border-radius: 50%;
+  }
+  input:checked + .slider { background-color: #ef4444; }
+  input:checked + .slider:before { transform: translateX(22px); }
+  .theme-label { font-size: 13px; color: var(--muted); }
+
+  /* Formulario compacto plegable */
+  details { border-radius: 8px; }
+  summary {
+    list-style: none; cursor: pointer; font-weight: 700;
+    padding: 8px 10px; border-radius: 8px; display:flex; align-items:center; gap:8px;
+    color: var(--text);
+  }
+  summary::marker { display:none; }
+  summary .badge {
+    background: rgba(239, 68, 68, .15);
+    color: var(--primary);
+    padding:2px 8px; border-radius:12px; font-size:12px; border: 1px solid var(--border);
+  }
+  .row { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:8px; }
+  label { display:block; margin:4px 0 3px; font-weight:600; font-size:13px; color: var(--muted); }
   input, select {
-    width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:15px;
+    width:100%; padding:8px; border:1px solid var(--border); border-radius:8px; font-size:14px;
+    background:#0b0e12; color: var(--text);
   }
-  .row { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+  :root[data-theme="light"] input, :root[data-theme="light"] select { background:#ffffff; color: var(--text); }
+
+  input::placeholder { color:#7a8699; }
+
+  /* Botones */
+  .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
   button {
-    width:100%; padding:12px; background:var(--rojo); color:#fff; border:none; border-radius:10px; font-size:16px; cursor:pointer;
+    padding:8px 10px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer;
   }
-  button:hover { background: var(--rojo2); }
-  table { width:100%; border-collapse: collapse; margin-top:10px; font-size:14px; }
-  th, td { border:1px solid #e6e6e6; padding:8px; text-align:center; }
-  th { background:#fafafa; }
-  .actions { display:flex; gap:10px; flex-wrap:wrap; }
-  .muted { color:#666; font-size:13px; }
-  .pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#eee; margin-right:6px; }
+  button:hover { background: var(--primary-2); }
+  button.secondary { background: var(--secondary); }
+  button.secondary:hover { background: #1f2a37; }
+  button.warn { background: var(--warn); }
+  button.warn:hover { background: #734a2a; }
+  button.gray { background: var(--gray); }
+  button.gray:hover { background: #4b5563; }
+
+  /* Tabla */
+  table { width:100%; border-collapse: collapse; margin-top:8px; font-size:13px; }
+  th, td { border:1px solid var(--border); padding:6px; text-align:center; }
+  th { background:#0b0f14; color: var(--muted); }
+  :root[data-theme="light"] th { background:#f8fafc; }
+
+  /* Toolbar y filtros */
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .toolbar .grow { flex:1; }
+
+  /* Gráficos compactos en una sola pantalla */
+  .charts { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:10px; }
+  .charts .chart-card { padding:10px; border: 1px solid var(--border); border-radius: 8px; background: #0b0f14; }
+  :root[data-theme="light"] .charts .chart-card { background:#ffffff; }
+  canvas { width:100% !important; height:120px !important; } /* ALTURA REDUCIDA */
+
+  /* Diálogo de edición */
+  dialog { border:none; border-radius:10px; width:min(520px, 96vw); padding:12px; background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
 </style>
 </head>
 <body>
+<div class="container">
 
-<div class="card">
-  <h1>Contador de Alarmas 2026 🔥</h1>
-  <div class="muted">
-    Guarda localmente en tu dispositivo. Puedes exportar a CSV y publicar esta app en GitHub Pages.
-  </div>
-</div>
+  <div class="card">
+    <div class="header-row">
+      <div>
+        <h1>Contador de Alarmas 2026 🔥</h1>
+        <div class="muted">Switch claro/oscuro, dashboard compacto y formulario plegable.</div>
+      </div>
 
-<div class="card">
-  <h2>Ingresar Alarma</h2>
-  <div class="row">
-    <div>
-      <label for="fecha">Fecha del Incendio</label>
-      <input type="date" id="fecha" />
-    </div>
-    <div>
-      <label for="hora">Hora del Incendio</label>
-      <input type="time" id="hora" />
-    </div>
-    <div>
-      <label for="obac">OBAC</label>
-      <input type="text" id="obac" placeholder="Ej: OBAC 1" />
-    </div>
-    <div>
-      <label for="alarma">Alarma de Incendio</label>
-      <select id="alarma">
-        <option value="1° Alarma">1° Alarma</option>
-        <option value="2° Alarma">2° Alarma</option>
-        <option value="3° Alarma">3° Alarma</option>
-        <option value="4° Alarma">4° Alarma</option>
-      </select>
-    </div>
-    <div>
-      <label for="unidad">Unidad / Compañía</label>
-      <input type="text" id="unidad" placeholder="Ej: 22-01, 6-01, 45, Vol 7°, etc." />
+      <!-- Switch de tema -->
+      <div class="theme-toggle">
+        <span class="theme-label">☀️</span>
+        <label class="switch" aria-label="Cambiar tema claro/oscuro">
+          <input id="themeSwitch" type="checkbox" />
+          <span class="slider"></span>
+        </label>
+        <span class="theme-label">🌙</span>
+      </div>
     </div>
   </div>
 
-  <div style="margin-top:12px" class="actions">
-    <button id="btnGuardar">📌 Guardar Registro</button>
-    <button id="btnExportar" style="background:#455a64">📥 Exportar a CSV</button>
-    <button id="btnBorrarTodo" style="background:#6d4c41">🗑️ Borrar todo (local)</button>
+  <!-- Apartado plegable con formulario y acciones -->
+  <div class="card">
+    <details>
+      <summary>➕ Registrar alarma <span class="badge">compacto</span></summary>
+      <div class="row">
+        <div>
+          <label for="fecha">Fecha del Incendio</label>
+          <input type="date" id="fecha" required />
+        </div>
+        <div>
+          <label for="hora">Hora del Incendio</label>
+          <input type="time" id="hora" required />
+        </div>
+        <div>
+          <label for="obac">OBAC</label>
+          <input type="text" id="obac" placeholder="Ej: OBAC 1" required />
+        </div>
+        <div>
+          <label for="alarma">Alarma de Incendio</label>
+          <select id="alarma" required>
+            <option value="PRIMERA ALARMA">PRIMERA ALARMA</option>
+            <option value="SEGUNDA ALARMA">SEGUNDA ALARMA</option>
+            <option value="TERCERA ALARMA">TERCERA ALARMA</option>
+          </select>
+        </div>
+        <div>
+          <label for="tipo">Tipo de Incendio</label>
+          <select id="tipo" required>
+            <option value="Estructural">Estructural</option>
+            <option value="Forestal">Forestal</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnGuardar">📌 Guardar</button>
+        <button id="btnExportarCSV" class="secondary">📥 CSV</button>
+        <button id="btnExportarJSON" class="secondary">🧩 Exportar JSON</button>
+        <label class="secondary" style="display:inline-flex; align-items:center; gap:8px; padding:0;">
+          <input id="importJSON" type="file" accept="application/json" style="display:none;">
+          <button type="button" class="secondary" id="btnImportarJSON">📤 Importar JSON</button>
+        </label>
+        <button id="btnBorrarTodo" class="warn">🗑️ Borrar todo</button>
+      </div>
+      <div class="muted" style="margin-top:6px">
+        * Los datos se guardan localmente en este navegador (LocalStorage). Para sincronizar entre equipos podemos conectar Google Sheets o Firebase si te interesa.
+      </div>
+    </details>
   </div>
-  <div class="muted" style="margin-top:8px">
-    * Los datos se guardan en este navegador (LocalStorage). Si borras el historial o cambias de navegador/dispositivo, no se comparten automáticamente.
+
+  <!-- Filtros y tabla -->
+  <div class="card">
+    <div class="toolbar">
+      <h2 style="margin-right:auto;">Registros</h2>
+      <div>
+        <label class="muted" for="filtroMes">Mes (AAAA‑MM)</label>
+        <input type="month" id="filtroMes" />
+      </div>
+      <div class="grow">
+        <label class="muted" for="buscar">Buscar (OBAC / Alarma / Tipo)</label>
+        <input type="text" id="buscar" placeholder="Buscar..." />
+      </div>
+    </div>
+
+    <div id="resumen" class="muted" style="margin-top:6px"></div>
+
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Hora</th>
+          <th>OBAC</th>
+          <th>Alarma</th>
+          <th>Tipo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
-</div>
 
-<div class="card">
-  <h2>Registros Guardados</h2>
-  <div id="resumen" class="muted"></div>
-  <table id="tabla">
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Hora</th>
-        <th>OBAC</th>
-        <th>Alarma</th>
-        <th>Unidad</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+  <!-- Gráficos: todos compactos en una grilla -->
+  <div class="card">
+    <h2>Dashboard</h2>
+    <div class="charts">
+      <div class="chart-card">
+        <h3 class="muted">Por Alarma</h3>
+        <canvas id="grafAlarma"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3 class="muted">Por Tipo</h3>
+        <canvas id="grafTipo"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3 class="muted">Por Mes (AAAA‑MM)</h3>
+        <canvas id="grafMes"></canvas>
+      </div>
+    </div>
+  </div>
 
-<div class="card">
-  <h2>Gráfico por Unidad</h2>
-  <canvas id="grafUnidad" height="160"></canvas>
-</div>
+  <!-- Diálogo para editar -->
+  <dialog id="dlgEditar">
+    <form method="dialog">
+      <h3>Editar registro</h3>
+      <div class="row">
+        <div>
+          <label for="e_fecha">Fecha</label>
+          <input type="date" id="e_fecha" required />
+        </div>
+        <div>
+          <label for="e_hora">Hora</label>
+          <input type="time" id="e_hora" required />
+        </div>
+        <div>
+          <label for="e_obac">OBAC</label>
+          <input type="text" id="e_obac" required />
+        </div>
+        <div>
+          <label for="e_alarma">Alarma</label>
+          <select id="e_alarma" required>
+            <option value="PRIMERA ALARMA">PRIMERA ALARMA</option>
+            <option value="SEGUNDA ALARMA">SEGUNDA ALARMA</option>
+            <option value="TERCERA ALARMA">TERCERA ALARMA</option>
+          </select>
+        </div>
+        <div>
+          <label for="e_tipo">Tipo</label>
+          <select id="e_tipo" required>
+            <option value="Estructural">Estructural</option>
+            <option value="Forestal">Forestal</option>
+          </select>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button type="submit">💾 Guardar</button>
+        <button type="button" class="gray" onclick="document.getElementById('dlgEditar').close()">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
 
-<div class="card">
-  <h2>Gráfico por Tipo de Alarma</h2>
-  <canvas id="grafAlarma" height="160"></canvas>
-</div>
-
-<div class="card">
-  <h2>Gráfico por Mes</h2>
-  <div class="muted">Formato AAAA-MM</div>
-  <canvas id="grafMes" height="160"></canvas>
 </div>
 
 <script>
-/* ------------------ Utilidades de almacenamiento ------------------ */
+/* ==================== Almacenamiento ==================== */
 const KEY = "alarmas_2026";
+const KEY_THEME = "alarmas_theme";
 
-function cargar() {
-  try { return JSON.parse(localStorage.getItem(KEY)) || []; }
-  catch { return []; }
+/** Carga registros desde LocalStorage; asigna id si falta (compatibilidad). */
+function cargar(){
+  let arr;
+  try { arr = JSON.parse(localStorage.getItem(KEY)) || []; }
+  catch { arr = []; }
+  let changed = false;
+  arr.forEach(r => {
+    if (!r.id) { r.id = String(Date.now()) + Math.random().toString(16).slice(2); changed = true; }
+  });
+  if (changed) localStorage.setItem(KEY, JSON.stringify(arr));
+  return arr;
 }
-function guardar(arr) {
-  localStorage.setItem(KEY, JSON.stringify(arr));
+function guardar(arr){ localStorage.setItem(KEY, JSON.stringify(arr)); }
+
+/* ==================== Tema (switch) ==================== */
+function getSystemPrefersDark(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function getSavedTheme(){ return localStorage.getItem(KEY_THEME); }
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  // Ajustar estado del switch
+  const sw = document.getElementById('themeSwitch');
+  if (sw) sw.checked = (theme === 'dark');
+  // Re-render de gráficos para aplicar colores
+  actualizarGraficos();
+}
+function initTheme(){
+  // Prioridad: guardado → sistema → dark
+  const saved = getSavedTheme();
+  let theme = saved || (getSystemPrefersDark() ? 'dark' : 'light');
+  // Por tu preferencia, dejamos oscuro por defecto si no hay guardado:
+  if (!saved) theme = 'dark';
+  applyTheme(theme);
+  const sw = document.getElementById('themeSwitch');
+  if (sw) {
+    sw.checked = (theme === 'dark');
+    sw.addEventListener('change', () => {
+      const next = sw.checked ? 'dark' : 'light';
+      localStorage.setItem(KEY_THEME, next);
+      applyTheme(next);
+    });
+  }
 }
 
-/* ------------------ UI: tabla, resumen, gráficos ------------------ */
-function renderTabla() {
-  const datos = cargar();
-  const tbody = document.querySelector("#tabla tbody");
+/* ==================== Estado UI ==================== */
+let chartAlarma, chartTipo, chartMes;
+let editId = null;
+const $ = (s) => document.querySelector(s);
+
+function normaliza(s){ return (s||"").trim(); }
+function ordenarDesc(arr){
+  return [...arr].sort((a,b)=>{
+    const A = (a.fecha||"") + " " + (a.hora||"00:00");
+    const B = (b.fecha||"") + " " + (b.hora||"00:00");
+    return B.localeCompare(A);
+  });
+}
+function aplicaFiltros(arr){
+  const mes = $("#filtroMes").value; // AAAA-MM
+  const q = $("#buscar").value.toLowerCase().trim();
+  return arr.filter(d=>{
+    const okMes = !mes || (d.fecha||"").startsWith(mes);
+    const text = `${d.obac} ${d.alarma} ${d.tipo}`.toLowerCase();
+    const okQ = !q || text.includes(q);
+    return okMes && okQ;
+  });
+}
+function resumen(arr, mesSel){
+  const total = arr.length;
+  const totalMes = mesSel ? arr.filter(d => (d.fecha||"").startsWith(mesSel)).length : total;
+  return { total, totalMes };
+}
+
+/* ==================== Render Tabla & Resumen ==================== */
+function renderTabla(){
+  const datos = ordenarDesc(cargar());
+  const filtrados = aplicaFiltros(datos);
+  const tbody = $("#tabla tbody");
   tbody.innerHTML = "";
-
-  datos.forEach((d, i) => {
+  filtrados.forEach(d=>{
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${d.fecha}</td>
-      <td>${d.hora}</td>
-      <td>${d.obac}</td>
-      <td>${d.alarma}</td>
-      <td>${d.unidad}</td>
-      <td><button style="background:#9e9e9e;padding:6px 10px;border-radius:6px" onclick="eliminar(${i})">Eliminar</button></td>
+      <td>${d.fecha||""}</td>
+      <td>${d.hora||""}</td>
+      <td>${d.obac||""}</td>
+      <td>${d.alarma||""}</td>
+      <td>${d.tipo||""}</td>
+      <td>
+        <button class="gray" onclick="abrirEditar('${d.id}')">Editar</button>
+        <button class="warn" onclick="eliminar('${d.id}')">Eliminar</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
 
-  // Resumen (total del mes actual y total general)
-  const total = datos.length;
-  const hoy = new Date();
-  const ym = hoy.toISOString().slice(0,7); // AAAA-MM
-  const delMes = datos.filter(d => (d.fecha || "").startsWith(ym)).length;
-  document.getElementById("resumen").innerHTML =
-    `<span class="pill">Total ${ym}: <b>${delMes}</b></span>
-     <span class="pill">Total acumulado 2026: <b>${total}</b></span>`;
+  const r = resumen(filtrados, $("#filtroMes").value);
+  $("#resumen").innerHTML =
+    `<span class="pill">Total (filtro): <b>${r.total}</b></span>
+     <span class="pill">Total del mes seleccionado: <b>${r.totalMes}</b></span>`;
 }
 
-let chartUnidad, chartAlarma, chartMes;
+/* ==================== Gráficos (colores según tema) ==================== */
+function themeChartOptions(){
+  const cs = getComputedStyle(document.documentElement);
+  const grid = cs.getPropertyValue('--chart-grid').trim();
+  const ticks = cs.getPropertyValue('--chart-ticks').trim();
+  const legend = cs.getPropertyValue('--chart-legend').trim();
 
-function agruparPor(arr, selector) {
-  const m = new Map();
-  arr.forEach(x => {
-    const k = selector(x);
-    if (!k) return;
-    m.set(k, (m.get(k) || 0) + 1);
-  });
-  return { etiquetas: [...m.keys()], valores: [...m.values()] };
-}
-
-function actualizarGraficos() {
-  const datos = cargar();
-
-  // Por Unidad
-  const gUnidad = agruparPor(datos, d => (d.unidad || "").trim());
-  chartUnidad && chartUnidad.destroy();
-  chartUnidad = new Chart(document.getElementById("grafUnidad"), {
-    type: "bar",
-    data: {
-      labels: gUnidad.etiquetas,
-      datasets: [{
-        label: "Alarmas por Unidad",
-        data: gUnidad.valores,
-        backgroundColor: "#d32f2f"
-      }]
+  return {
+    legendColor: legend,
+    ticksColor: ticks,
+    gridColor: grid,
+    baseLegendBottom: {
+      responsive: true,
+      plugins: { legend: { position: "bottom", labels: { color: legend } } },
     },
-    options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, precision:0}} }
-  });
-
-  // Por Tipo de Alarma
-  const gAlarma = agruparPor(datos, d => d.alarma);
-  chartAlarma && chartAlarma.destroy();
-  chartAlarma = new Chart(document.getElementById("grafAlarma"), {
-    type: "pie",
-    data: {
-      labels: gAlarma.etiquetas,
-      datasets: [{ data: gAlarma.valores, backgroundColor: ["#b71c1c","#e57373","#ff8a80","#ffcdd2"] }]
+    baseXY: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: ticks }, grid: { color: grid } },
+        y: { ticks: { color: ticks, precision: 0 }, grid: { color: grid }, beginAtZero: true }
+      }
     }
+  };
+}
+
+function agruparPor(arr, sel){
+  const m = new Map();
+  arr.forEach(x => { const k = sel(x); if (!k) return; m.set(k, (m.get(k)||0)+1); });
+  const etiquetas = [...m.keys()];
+  const valores = [...m.values()];
+  return { etiquetas, valores };
+}
+
+function actualizarGraficos(){
+  const datos = aplicaFiltros(ordenarDesc(cargar()));
+  const t = themeChartOptions();
+
+  // Por Alarma (pie)
+  const gA = agruparPor(datos, d => d.alarma);
+  if (chartAlarma) chartAlarma.destroy();
+  chartAlarma = new Chart($("#grafAlarma"), {
+    type: "pie",
+    data: { labels: gA.etiquetas, datasets: [{ data: gA.valores, backgroundColor: ["#ef4444","#f97316","#eab308"] }] },
+    options: t.baseLegendBottom
   });
 
-  // Por Mes (AAAA-MM)
-  const gMes = agruparPor(datos, d => (d.fecha || "").slice(0,7));
-  const pares = gMes.etiquetas.map((k,i) => [k, gMes.valores[i]]).sort((a,b) => a[0].localeCompare(b[0]));
-  chartMes && chartMes.destroy();
-  chartMes = new Chart(document.getElementById("grafMes"), {
+  // Por Tipo (doughnut)
+  const gT = agruparPor(datos, d => d.tipo);
+  if (chartTipo) chartTipo.destroy();
+  chartTipo = new Chart($("#grafTipo"), {
+    type: "doughnut",
+    data: { labels: gT.etiquetas, datasets: [{ data: gT.valores, backgroundColor: ["#22c55e","#06b6d4"] }] },
+    options: { ...t.baseLegendBottom, cutout: "55%" }
+  });
+
+  // Por Mes (línea)
+  const gM = agruparPor(datos, d => (d.fecha||"").slice(0,7));
+  const pares = gM.etiquetas.map((k,i)=>[k,gM.valores[i]]).sort((a,b)=>a[0].localeCompare(b[0]));
+  if (chartMes) chartMes.destroy();
+  chartMes = new Chart($("#grafMes"), {
     type: "line",
     data: {
-      labels: pares.map(p => p[0]),
+      labels: pares.map(p=>p[0]),
       datasets: [{
-        label: "Alarmas por Mes",
-        data: pares.map(p => p[1]),
-        borderColor: "#b71c1c",
-        backgroundColor: "rgba(183,28,28,.15)",
-        tension: .2,
-        fill: true
+        label:"Alarmas por Mes",
+        data: pares.map(p=>p[1]),
+        borderColor:"#ef4444",
+        backgroundColor:"rgba(239,68,68,.18)",
+        tension:.2, fill:true
       }]
     },
-    options: { plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, precision:0}} }
+    options: t.baseXY
   });
 }
 
-/* ------------------ Acciones ------------------ */
-function limpiarFormulario() {
-  ["fecha","hora","obac","unidad"].forEach(id => document.getElementById(id).value = "");
-  document.getElementById("alarma").value = "1° Alarma";
+/* ==================== CRUD ==================== */
+function validar(){
+  const fecha = $("#fecha").value;
+  const hora  = $("#hora").value;
+  const obac  = normaliza($("#obac").value);
+  const alarma= $("#alarma").value;
+  const tipo  = $("#tipo").value;
+  if (!fecha || !hora || !obac || !alarma || !tipo) return null;
+  return { fecha, hora, obac, alarma, tipo };
 }
-function validarCampos() {
-  const fecha = document.getElementById("fecha").value;
-  const hora  = document.getElementById("hora").value;
-  const obac  = document.getElementById("obac").value.trim();
-  const alarma= document.getElementById("alarma").value;
-  const unidad= document.getElementById("unidad").value.trim();
-  if (!fecha || !hora || !obac || !unidad) return null;
-  return { fecha, hora, obac, alarma, unidad };
-}
-
-function guardarRegistro() {
-  const reg = validarCampos();
+function guardarRegistro(){
+  const reg = validar();
   if (!reg) { alert("Completa todos los campos."); return; }
   const arr = cargar();
-  arr.push(reg);
+  arr.push({ id: String(Date.now())+Math.random().toString(16).slice(2), ...reg });
   guardar(arr);
-  renderTabla();
-  actualizarGraficos();
-  limpiarFormulario();
+  ["#fecha","#hora","#obac"].forEach(s => $(s).value = "");
+  $("#alarma").value = "PRIMERA ALARMA";
+  $("#tipo").value = "Estructural";
+  renderTabla(); actualizarGraficos();
 }
-
-function exportarCSV() {
+function eliminar(id){
+  if (!confirm("¿Eliminar este registro?")) return;
+  const arr = cargar().filter(x => x.id !== id);
+  guardar(arr);
+  renderTabla(); actualizarGraficos();
+}
+function abrirEditar(id){
+  const r = cargar().find(x => x.id === id);
+  if (!r) return;
+  editId = id;
+  $("#e_fecha").value  = r.fecha || "";
+  $("#e_hora").value   = r.hora  || "";
+  $("#e_obac").value   = r.obac  || "";
+  $("#e_alarma").value = r.alarma|| "PRIMERA ALARMA";
+  $("#e_tipo").value   = r.tipo  || "Estructural";
+  $("#dlgEditar").showModal();
+}
+document.getElementById("dlgEditar").addEventListener("close", ()=>{ editId=null; });
+document.querySelector("#dlgEditar form").addEventListener("submit",(ev)=>{
+  ev.preventDefault();
   const arr = cargar();
-  let csv = "Fecha,Hora,OBAC,Alarma,Unidad\n";
-  arr.forEach(d => csv += `${d.fecha},${d.hora},${d.obac},${d.alarma},${d.unidad}\n`);
+  const i = arr.findIndex(x => x.id === editId);
+  if (i >= 0){
+    arr[i] = {
+      ...arr[i],
+      fecha: document.getElementById("e_fecha").value,
+      hora:  document.getElementById("e_hora").value,
+      obac:  normaliza(document.getElementById("e_obac").value),
+      alarma:document.getElementById("e_alarma").value,
+      tipo:  document.getElementById("e_tipo").value
+    };
+    guardar(arr);
+  }
+  document.getElementById("dlgEditar").close();
+  renderTabla(); actualizarGraficos();
+});
+
+/* ==================== Exportar / Importar ==================== */
+function exportarCSV(){
+  const arr = aplicaFiltros(ordenarDesc(cargar()));
+  let csv = "Fecha,Hora,OBAC,Alarma,Tipo\n";
+  arr.forEach(d => csv += `${d.fecha},${d.hora},${d.obac},${d.alarma},${d.tipo}\n`);
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "alarmas_2026.csv";
   a.click();
 }
-
-function eliminar(idx) {
+function exportarJSON(){
   const arr = cargar();
-  arr.splice(idx, 1);
-  guardar(arr);
-  renderTabla();
-  actualizarGraficos();
+  const blob = new Blob([JSON.stringify(arr, null, 2)], {type:"application/json;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "alarmas_2026_backup.json";
+  a.click();
+}
+function importarJSON(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const imported = JSON.parse(reader.result);
+      if (!Array.isArray(imported)) throw new Error("Formato inválido.");
+      const norm = imported.map(d => ({
+        id: d.id || String(Date.now())+Math.random().toString(16).slice(2),
+        fecha:d.fecha, hora:d.hora, obac:d.obac, alarma:d.alarma, tipo:d.tipo
+      }));
+      const actual = cargar();
+      guardar([...actual, ...norm]);
+      renderTabla(); actualizarGraficos();
+      alert("Importación completada.");
+    } catch(e){
+      alert("No se pudo importar: " + e.message);
+    }
+  };
+  reader.readAsText(file, "utf-8");
 }
 
-function borrarTodo() {
-  if (!confirm("Esto borrará todos los registros guardados localmente en este navegador. ¿Continuar?")) return;
-  localStorage.removeItem(KEY);
-  renderTabla();
-  actualizarGraficos();
-}
-
-/* ------------------ Eventos ------------------ */
+/* ==================== Eventos ==================== */
 document.getElementById("btnGuardar").addEventListener("click", guardarRegistro);
-document.getElementById("btnExportar").addEventListener("click", exportarCSV);
-document.getElementById("btnBorrarTodo").addEventListener("click", borrarTodo);
+document.getElementById("btnExportarCSV").addEventListener("click", exportarCSV);
+document.getElementById("btnExportarJSON").addEventListener("click", exportarJSON);
+document.getElementById("btnImportarJSON").addEventListener("click", ()=> document.getElementById("importJSON").click());
+document.getElementById("importJSON").addEventListener("change", (e)=> { const f = e.target.files[0]; if (f) importarJSON(f); });
+document.getElementById("btnBorrarTodo").addEventListener("click", ()=>{
+  if (!confirm("Esto borrará todos los registros guardados localmente en este navegador. ¿Continuar?")) return;
+  localStorage.removeItem(KEY); renderTabla(); actualizarGraficos();
+});
+document.getElementById("filtroMes").addEventListener("change", ()=>{ renderTabla(); actualizarGraficos(); });
+document.getElementById("buscar").addEventListener("input", ()=>{ renderTabla(); actualizarGraficos(); });
 
-/* ------------------ Precarga opcional de tus contadores ------------------ */
-/*  Si quieres iniciar con algunos valores (por ejemplo los totales que pasaste),
-    descomenta este bloque UNA sola vez, recarga, y luego vuelve a comentarlo.
-*/
-// (function precarga() {
-//   if ((cargar()||[]).length) return; // ya hay datos
-//   const seed = [
-//     {unidad:"22-01", n:8}, {unidad:"6-01", n:6}, {"unidad":"4° Comandante", n:2},
-//     {"unidad":"45", n:2}, {"unidad":"Vol 7° Manuel Pérez", n:2}, {"unidad":"8-03", n:1},
-//     {"unidad":"Vol 8° Manuel Cerpa", n:2}, {"unidad":"21-03", n:2}, {"unidad":"51", n:1},
-//     {"unidad":"3-03", n:1}, {"unidad":"8-02", n:1}, {"unidad":"10-03", n:1},
-//     {"unidad":"17-03", n:1}, {"unidad":"18° Guillermo Chinni", n:1}
-//   ];
-//   const arr = []; // ejemplo con fechas en enero y febrero 2026
-//   seed.forEach(s => {
-//     for (let i=0;i<s.n;i++) {
-//       const mes = (i % 2 === 0) ? "2026-01-01" : "2026-02-01";
-//       arr.push({fecha: mes, hora: "12:00", obac: "OBAC 1", alarma: "1° Alarma", unidad: s.unidad});
-//     }
-//   });
-//   guardar(arr);
-// })();
-
-/* ------------------ Inicialización ------------------ */
+/* ==================== Inicialización ==================== */
+initTheme();       // Aplica tema guardado / sistema (oscuro por defecto si nada guardado)
 renderTabla();
 actualizarGraficos();
 </script>
