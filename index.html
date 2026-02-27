@@ -14,16 +14,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <style>
-  :root {
-    --bg:#f4f5f7; --card:#ffffff; --text:#111827; --muted:#4b5563; --border:#e5e7eb;
-    --primary:#ef4444; --primary-2:#dc2626; --secondary:#334155; --warn:#8b5e34; --gray:#6b7280;
-    --chip:#f3f4f6; --chart-grid:rgba(0,0,0,.08); --chart-ticks:#374151; --chart-legend:#111827;
-  }
-  :root[data-theme="dark"] {
-    --bg:#0f1216; --card:#171a1f; --text:#e5e7eb; --muted:#9aa4b2; --border:#242a32;
-    --primary:#ef4444; --primary-2:#dc2626; --secondary:#334155; --warn:#8b5e34; --gray:#6b7280;
-    --chip:#1f2733; --chart-grid:rgba(148,163,184,.15); --chart-ticks:#cbd5e1; --chart-legend:#e5e7eb;
-  }
+  :root { --bg:#f4f5f7; --card:#ffffff; --text:#111827; --muted:#4b5563; --border:#e5e7eb; --primary:#ef4444; --primary-2:#dc2626; --secondary:#334155; --warn:#8b5e34; --gray:#6b7280; --chip:#f3f4f6; --chart-grid:rgba(0,0,0,.08); --chart-ticks:#374151; --chart-legend:#111827; }
+  :root[data-theme="dark"] { --bg:#0f1216; --card:#171a1f; --text:#e5e7eb; --muted:#9aa4b2; --border:#242a32; --primary:#ef4444; --primary-2:#dc2626; --secondary:#334155; --warn:#8b5e34; --gray:#6b7280; --chip:#1f2733; --chart-grid:rgba(148,163,184,.15); --chart-ticks:#cbd5e1; --chart-legend:#e5e7eb; }
   *{box-sizing:border-box}
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;padding:12px;background:var(--bg);color:var(--text)}
   .container{max-width:1100px;margin:0 auto}
@@ -369,7 +361,7 @@
 </div>
 
 <script>
-// ==================== Firebase Config (tu config real) ====================
+// Firebase config (tu config real)
 const firebaseConfig = {
   apiKey: "AIzaSyAHrcx9UK40TiW4BCFZOPHKj5XrJ_2OKBI",
   authDomain: "alarmas-2026.firebaseapp.com",
@@ -386,17 +378,17 @@ const COL = 'alarmas';
 </script>
 
 <script>
-// ===== THEME =====
+// THEME
 const KEY_THEME = "alarmas_theme";
 function setTheme(theme){ const t=(theme||"dark").toLowerCase()==="light"?"light":"dark"; document.documentElement.setAttribute("data-theme",t); const sw=document.getElementById("themeSwitch"); if(sw) sw.checked=(t==="dark"); try{actualizarGraficos()}catch(_){} }
 window.addEventListener("DOMContentLoaded",()=>{ const saved=(localStorage.getItem(KEY_THEME)||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?"dark":"light")); setTheme(saved); const sw=document.getElementById("themeSwitch"); if(sw){ sw.addEventListener("change",e=>{ const next=e.target.checked?"dark":"light"; localStorage.setItem(KEY_THEME,next); setTheme(next); }); }});
 
-// ===== STORAGE =====
+// STORAGE
 const KEY = "alarmas_2026";
 function cargar(){ let arr; try{arr=JSON.parse(localStorage.getItem(KEY))||[]}catch{arr=[]} let changed=false; arr.forEach(r=>{ if(!r.id){r.id=String(Date.now())+Math.random().toString(16).slice(2);changed=true} if(r.cargo===undefined){r.cargo="";changed=true} if(r.compania===undefined){r.compania="";changed=true} if(r.direccion===undefined){r.direccion="";changed=true} }); if(changed) localStorage.setItem(KEY,JSON.stringify(arr)); return arr; }
 function guardar(arr){ localStorage.setItem(KEY, JSON.stringify(arr)); }
 
-// ===== UI HELPERS =====
+// UI HELPERS
 let chartCompania, chartAlarma, chartTipo, chartMes, editId=null;
 const $=s=>document.querySelector(s);
 function normaliza(s){return (s||"").trim()}
@@ -404,8 +396,10 @@ function ordenarDesc(arr){ return [...arr].sort((a,b)=>{ const A=(a.fecha||"")+"
 function aplicaFiltros(arr){ const mes=$("#filtroMes")?.value||""; const q=($("#buscar")?.value||"").toLowerCase().trim(); return arr.filter(d=>{ const okMes=!mes||(d.fecha||"").startsWith(mes); const text=`${d.cargo} ${d.compania} ${d.obac} ${d.alarma} ${d.tipo} ${d.direccion}`.toLowerCase(); const okQ=!q||text.includes(q); return okMes&&okQ; }); }
 function resumen(arr,mesSel){ const total=arr.length; const totalMes=mesSel?arr.filter(d=>(d.fecha||"").startsWith(mesSel)).length:total; return {total,totalMes}; }
 
-// ===== TABLA =====
-function renderTabla(){ const datos=ordenarDesc(cargar()); const filtrados=aplicaFiltros(datos); const tbody=document.querySelector("#tabla tbody"); if(!tbody) return; tbody.innerHTML=""; filtrados.forEach(d=>{ const tr=document.createElement("tr"); tr.innerHTML=`
+// TABLA (acciones solo para isWriter)
+function renderTabla(){ const datos=ordenarDesc(cargar()); const filtrados=aplicaFiltros(datos); const tbody=document.querySelector("#tabla tbody"); if(!tbody) return; tbody.innerHTML=""; filtrados.forEach(d=>{ const tr=document.createElement("tr"); const accionesTd = (window.isWriter)
+  ? `<button class="gray" onclick="abrirEditar('${d.id}')">Editar</button> <button class="warn" onclick="eliminar('${d.id}')">Eliminar</button>`
+  : ""; tr.innerHTML=`
   <td>${d.fecha||""}</td>
   <td>${d.hora||""}</td>
   <td>${d.cargo||""}</td>
@@ -414,65 +408,62 @@ function renderTabla(){ const datos=ordenarDesc(cargar()); const filtrados=aplic
   <td>${d.alarma||""}</td>
   <td>${d.tipo||""}</td>
   <td>${d.direccion||""}</td>
-  <td>
-    <button class="gray" onclick="abrirEditar('${d.id}')">Editar</button>
-    <button class="warn" onclick="eliminar('${d.id}')">Eliminar</button>
-  </td>`; tbody.appendChild(tr); }); const res=$("#resumen"); if(res){ const r=resumen(filtrados,$("#filtroMes")?.value||""); res.innerHTML=`<span class="pill">Total (filtro): <b>${r.total}</b></span> <span class="pill">Total del mes seleccionado: <b>${r.totalMes}</b></span>`; } }
+  <td>${accionesTd}</td>`; tbody.appendChild(tr); }); const res=$("#resumen"); if(res){ const r=resumen(filtrados,$("#filtroMes")?.value||""); res.innerHTML=`<span class="pill">Total (filtro): <b>${r.total}</b></span> <span class="pill">Total del mes seleccionado: <b>${r.totalMes}</b></span>`; } updateUiPermissions(); }
 
-// ===== GRÁFICOS =====
+// GRÁFICOS
 function themeChartOptions(){ const cs=getComputedStyle(document.documentElement); const grid=cs.getPropertyValue('--chart-grid').trim(); const ticks=cs.getPropertyValue('--chart-ticks').trim(); const legend=cs.getPropertyValue('--chart-legend').trim(); const legendLabels={color:legend,boxWidth:10,boxHeight:10,padding:8,font:{size:10}}; const tickStyle={color:ticks,font:{size:10}}; return { baseLegendBottom:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:legendLabels}}}, baseXY:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:tickStyle,grid:{color:grid}},y:{ticks:{...tickStyle,precision:0},grid:{color:grid},beginAtZero:true}}} } }
 function agruparPor(arr,sel){ const m=new Map(); arr.forEach(x=>{ const k=sel(x); if(!k) return; m.set(k,(m.get(k)||0)+1); }); return { etiquetas:[...m.keys()], valores:[...m.values()] } }
 const PALETA=["#ef4444","#f97316","#eab308","#22c55e","#06b6d4","#3b82f6","#8b5cf6","#ec4899","#14b8a6","#84cc16","#f59e0b","#fb7185","#38bdf8","#a78bfa","#10b981","#f472b6","#93c5fd","#fde047","#34d399","#c084fc","#60a5fa","#fda4af","#4ade80","#facc15"];
 function paletaN(n){ const out=[]; for(let i=0;i<n;i++) out.push(PALETA[i%PALETA.length]); return out; }
 function actualizarGraficos(){ const datos=aplicaFiltros(ordenarDesc(cargar())); const t=themeChartOptions(); const gC=agruparPor(datos,d=>d.compania); if(chartCompania) chartCompania.destroy(); chartCompania=new Chart(document.getElementById("grafCompania"),{type:"doughnut",data:{labels:gC.etiquetas,datasets:[{data:gC.valores,backgroundColor:paletaN(gC.valores.length),borderWidth:0,hoverOffset:3}]},options:{...t.baseLegendBottom,cutout:"55%"}}); const gA=agruparPor(datos,d=>d.alarma); if(chartAlarma) chartAlarma.destroy(); chartAlarma=new Chart(document.getElementById("grafAlarma"),{type:"doughnut",data:{labels:gA.etiquetas,datasets:[{data:gA.valores,backgroundColor:["#ef4444","#f97316","#eab308"],borderWidth:0,hoverOffset:3}]},options:{...t.baseLegendBottom,cutout:"55%"}}); const gT=agruparPor(datos,d=>d.tipo); if(chartTipo) chartTipo.destroy(); chartTipo=new Chart(document.getElementById("grafTipo"),{type:"doughnut",data:{labels:gT.etiquetas,datasets:[{data:gT.valores,backgroundColor:["#22c55e","#06b6d4"],borderWidth:0,hoverOffset:3}]},options:{...t.baseLegendBottom,cutout:"55%"}}); const gM=agruparPor(datos,d=>(d.fecha||"").slice(0,7)); const pares=gM.etiquetas.map((k,i)=>[k,gM.valores[i]]).sort((a,b)=>a[0].localeCompare(b[0])); if(chartMes) chartMes.destroy(); chartMes=new Chart(document.getElementById("grafMes"),{type:"line",data:{labels:pares.map(p=>p[0]),datasets:[{label:"Alarmas por Mes",data:pares.map(p=>p[1]),borderColor:"#ef4444",backgroundColor:"rgba(239,68,68,.18)",pointRadius:2,tension:.2,fill:true}]},options:t.baseXY}); }
 
-// ===== CRUD =====
+// CRUD + VALIDACIONES
 function validar(){ const fecha=$("#fecha")?.value; const hora=$("#hora")?.value; const cargo=$("#cargo")?.value; const compania=$("#compania")?.value; const obac=normaliza($("#obac")?.value); const alarma=$("#alarma")?.value; const tipo=$("#tipo")?.value; const direccion=normaliza($("#direccion")?.value); if(!fecha||!hora||!cargo||!compania||!obac||!alarma||!tipo) return null; return {fecha,hora,cargo,compania,obac,alarma,tipo,direccion}; }
 async function guardarRegistro(){ if(!isWriter){alert("Solo usuarios autorizados pueden registrar.");return} const reg=validar(); if(!reg){alert("Completa todos los campos obligatorios.");return} const arr=cargar(); const newReg={id:String(Date.now())+Math.random().toString(16).slice(2),...reg}; arr.push(newReg); guardar(arr); try{await saveToFirestore(newReg)}catch(e){console.error(e);alert("No se pudo guardar en la nube.")} ["fecha","hora","obac","direccion"].forEach(id=>{const el=document.getElementById(id); if(el) el.value=""}); if($("#cargo")) $("#cargo").value="Comandante 1"; if($("#compania")) $("#compania").value="1° Compañía"; if($("#alarma")) $("#alarma").value="PRIMERA ALARMA"; if($("#tipo")) $("#tipo").value="Estructural"; renderTabla(); actualizarGraficos(); }
 async function eliminar(id){ if(!isWriter){alert("Solo usuarios autorizados pueden eliminar.");return} if(!confirm("¿Eliminar este registro?")) return; const arr=cargar().filter(x=>x.id!==id); guardar(arr); try{await deleteFromFirestore(id)}catch(e){console.error(e);alert("No se pudo eliminar en la nube.")} renderTabla(); actualizarGraficos(); }
-function abrirEditar(id){ const r=cargar().find(x=>x.id===id); if(!r) return; editId=id; $("#e_fecha").value=r.fecha||""; $("#e_hora").value=r.hora||""; $("#e_cargo").value=r.cargo||"Comandante 1"; $("#e_compania").value=r.compania||"1° Compañía"; $("#e_obac").value=r.obac||""; $("#e_alarma").value=r.alarma||"PRIMERA ALARMA"; $("#e_tipo").value=r.tipo||"Estructural"; $("#e_direccion").value=r.direccion||""; $("#dlgEditar").showModal(); }
+function abrirEditar(id){ if(!isWriter){ alert("Solo usuarios autorizados pueden editar."); return; } const r=cargar().find(x=>x.id===id); if(!r) return; editId=id; $("#e_fecha").value=r.fecha||""; $("#e_hora").value=r.hora||""; $("#e_cargo").value=r.cargo||"Comandante 1"; $("#e_compania").value=r.compania||"1° Compañía"; $("#e_obac").value=r.obac||""; $("#e_alarma").value=r.alarma||"PRIMERA ALARMA"; $("#e_tipo").value=r.tipo||"Estructural"; $("#e_direccion").value=r.direccion||""; $("#dlgEditar").showModal(); }
 document.getElementById("dlgEditar").addEventListener("close",()=>{editId=null});
-document.querySelector("#dlgEditar form").addEventListener("submit",async ev=>{ ev.preventDefault(); const arr=cargar(); const i=arr.findIndex(x=>x.id===editId); if(i>=0){ arr[i]={...arr[i], fecha:$("#e_fecha").value, hora:$("#e_hora").value, cargo:$("#e_cargo").value, compania:$("#e_compania").value, obac:normaliza($("#e_obac").value), alarma:$("#e_alarma").value, tipo:$("#e_tipo").value, direccion:normaliza($("#e_direccion").value)}; guardar(arr); try{await saveToFirestore(arr[i])}catch(e){console.error(e);alert("No se pudo guardar cambios en la nube.")} } $("#dlgEditar").close(); renderTabla(); actualizarGraficos(); });
+document.querySelector("#dlgEditar form").addEventListener("submit",async ev=>{ ev.preventDefault(); if(!isWriter){ alert("Solo usuarios autorizados pueden editar."); return; } const arr=cargar(); const i=arr.findIndex(x=>x.id===editId); if(i>=0){ arr[i]={...arr[i], fecha:$("#e_fecha").value, hora:$("#e_hora").value, cargo:$("#e_cargo").value, compania:$("#e_compania").value, obac:normaliza($("#e_obac").value), alarma:$("#e_alarma").value, tipo:$("#e_tipo").value, direccion:normaliza($("#e_direccion").value)}; guardar(arr); try{await saveToFirestore(arr[i])}catch(e){console.error(e);alert("No se pudo guardar cambios en la nube.")} } $("#dlgEditar").close(); renderTabla(); actualizarGraficos(); });
 
-// ===== Exportar / Importar =====
+// Exportar / Importar
 function exportarCSV(){ const arr=aplicaFiltros(ordenarDesc(cargar())); let csv="Fecha,Hora,Cargo,Compañía,OBAC,Alarma,Tipo,Dirección\n"; arr.forEach(d=>{ const dir=(d.direccion||"").replace(/\"/g,'\"'); csv+=`${d.fecha},${d.hora},${d.cargo},${d.compania},${d.obac},${d.alarma},${d.tipo},"${dir}"\n`; }); const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="alarmas_2026.csv"; a.click(); }
 function exportarJSON(){ const arr=cargar(); const blob=new Blob([JSON.stringify(arr,null,2)],{type:"application/json;charset=utf-8;"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="alarmas_2026_backup.json"; a.click(); }
 function importarJSON(file){ const reader=new FileReader(); reader.onload=()=>{ try{ const imported=JSON.parse(reader.result); if(!Array.isArray(imported)) throw new Error("Formato inválido."); const norm=imported.map(d=>({ id:d.id||String(Date.now())+Math.random().toString(16).slice(2), fecha:d.fecha, hora:d.hora, cargo:d.cargo||"", compania:d.compania||"", obac:d.obac, alarma:d.alarma, tipo:d.tipo, direccion:d.direccion||"" })); const actual=cargar(); guardar([...actual,...norm]); renderTabla(); actualizarGraficos(); alert("Importación completada."); }catch(e){ alert("No se pudo importar: "+e.message); } }; reader.readAsText(file,"utf-8"); }
 
-// ===== Geolocalización =====
+// Geolocalización
 async function usarUbicacion(){ if(!navigator.geolocation){alert("Geolocalización no soportada.");return} try{ const pos=await new Promise((res,rej)=>{ navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:10000}); }); const {latitude:lat,longitude:lon}=pos.coords; const url=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&addressdetails=1`; let direccion=`Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`; try{ const resp=await fetch(url,{headers:{"Accept-Language":"es-CL,es;q=0.9"}}); if(resp.ok){ const data=await resp.json(); if(data&&data.display_name) direccion=data.display_name; } }catch(_){ } const input=document.getElementById("direccion"); if(input){ input.value=direccion; input.focus(); } }catch(err){ alert("No se pudo obtener ubicación. Revisa permisos."); } }
 
-// ===== Firestore helpers =====
+// Firestore helpers
 async function saveToFirestore(reg){ await db.collection(COL).doc(reg.id).set(reg,{merge:true}); }
 async function deleteFromFirestore(id){ await db.collection(COL).doc(id).delete(); }
 
-// ===== Auth + Permisos (Email/Password) =====
+// Auth + Permisos
 const ADMIN_EMAILS=new Set([ "alarmas@toxicos.cl" ]);
-let currentUser=null; let isWriter=false;
-function updateUiPermissions(){ const cardRegistrar=document.getElementById('cardRegistrar'); if(cardRegistrar) cardRegistrar.style.display=isWriter?'':'none'; document.querySelectorAll('button').forEach(b=>{ const t=(b.textContent||'').toLowerCase(); if(t.includes('editar')||t.includes('eliminar')){ b.disabled=!isWriter; b.style.opacity=isWriter?1:.6; b.title=isWriter?"":"Solo usuarios autorizados"; } }); const saveBtn=document.getElementById('btnGuardar'); if(saveBtn) saveBtn.disabled=!isWriter; const delAll=document.getElementById('btnBorrarTodo'); if(delAll) delAll.disabled=!isWriter; }
+let currentUser=null; window.isWriter=false;
+function updateUiPermissions(){ const cardRegistrar=document.getElementById('cardRegistrar'); if(cardRegistrar) cardRegistrar.style.display=window.isWriter?'':'none'; document.querySelectorAll('button').forEach(b=>{ const t=(b.textContent||'').toLowerCase(); if(t.includes('editar')||t.includes('eliminar')){ b.disabled=!window.isWriter; b.style.opacity=window.isWriter?1:.6; b.title=window.isWriter?"":"Solo usuarios autorizados"; } }); const saveBtn=document.getElementById('btnGuardar'); if(saveBtn) saveBtn.disabled=!window.isWriter; const delAll=document.getElementById('btnBorrarTodo'); if(delAll) delAll.disabled=!window.isWriter; }
 const dlgLogin=document.getElementById('dlgLogin');
 document.getElementById('btnLogin')?.addEventListener('click',()=>{ if(dlgLogin){ document.getElementById('login_email').value=''; document.getElementById('login_pass').value=''; dlgLogin.showModal(); }});
 document.getElementById('formLogin')?.addEventListener('submit', async ev=>{ ev.preventDefault(); const email=document.getElementById('login_email').value.trim(); const pass=document.getElementById('login_pass').value; try{ await auth.signInWithEmailAndPassword(email,pass); dlgLogin.close(); }catch(e){ alert("Error al iniciar sesión: "+e.message); } });
 document.getElementById('btnLogout')?.addEventListener('click', async ()=>{ await auth.signOut(); });
-auth.onAuthStateChanged(user=>{ const email=(user&&user.email?user.email.trim().toLowerCase():""); currentUser=user; isWriter=!!(email&&ADMIN_EMAILS.has(email)); const loginBtn=document.getElementById('btnLogin'); const logoutBtn=document.getElementById('btnLogout'); if(user){ if(loginBtn) loginBtn.style.display='none'; if(logoutBtn){ logoutBtn.style.display='inline-block'; logoutBtn.textContent=`Salir (${email})`; } }else{ if(loginBtn) loginBtn.style.display='inline-block'; if(logoutBtn) logoutBtn.style.display='none'; } updateUiPermissions(); });
+auth.onAuthStateChanged(user=>{ const email=(user&&user.email?user.email.trim().toLowerCase():""); currentUser=user; window.isWriter=!!(email&&ADMIN_EMAILS.has(email)); const loginBtn=document.getElementById('btnLogin'); const logoutBtn=document.getElementById('btnLogout'); if(user){ if(loginBtn) loginBtn.style.display='none'; if(logoutBtn){ logoutBtn.style.display='inline-block'; logoutBtn.textContent=`Salir (${email})`; } }else{ if(loginBtn) loginBtn.style.display='inline-block'; if(logoutBtn) logoutBtn.style.display='none'; } updateUiPermissions(); renderTabla(); });
 
-// ===== Tiempo real + carga inicial =====
+// Tiempo real + carga inicial
 async function cargarNubeUnaVez(){ try{ const snap=await db.collection(COL).get(); const cloud=[]; snap.forEach(doc=>cloud.push(doc.data())); localStorage.setItem(KEY, JSON.stringify(ordenarDesc(cloud))); }catch(e){ console.warn('GET Firestore error',e); } }
 let unsubRealtime=null; function subscribeRealtime(){ if(unsubRealtime) unsubRealtime(); unsubRealtime = db.collection(COL).onSnapshot(snap=>{ const cloud=[]; snap.forEach(doc=>cloud.push(doc.data())); localStorage.setItem(KEY, JSON.stringify(ordenarDesc(cloud))); renderTabla(); actualizarGraficos(); }, err=>console.error('onSnapshot error',err)); }
 
-// ===== Eventos =====
+// Eventos
 document.getElementById("btnGuardar")?.addEventListener("click",guardarRegistro);
 document.getElementById("btnExportarCSV")?.addEventListener("click",exportarCSV);
 document.getElementById("btnExportarJSON")?.addEventListener("click",exportarJSON);
 document.getElementById("btnImportarJSON")?.addEventListener("click",()=>document.getElementById("importJSON").click());
 document.getElementById("importJSON")?.addEventListener("change",e=>{ const f=e.target.files[0]; if(f) importarJSON(f); });
-document.getElementById("btnBorrarTodo")?.addEventListener("click",()=>{ if(!isWriter){alert("Solo usuarios autorizados.");return} if(!confirm("Esto borrará los registros locales en este navegador. ¿Continuar?")) return; localStorage.removeItem(KEY); renderTabla(); actualizarGraficos(); });
+document.getElementById("btnBorrarTodo")?.addEventListener("click",()=>{ if(!window.isWriter){alert("Solo usuarios autorizados.");return} if(!confirm("Esto borrará los registros locales en este navegador. ¿Continuar?")) return; localStorage.removeItem(KEY); renderTabla(); actualizarGraficos(); });
 document.getElementById("btnGeo")?.addEventListener("click",usarUbicacion);
 document.addEventListener("change",e=>{ if(e.target&&e.target.id==="filtroMes"){ renderTabla(); actualizarGraficos(); }});
 document.addEventListener("input",e=>{ if(e.target&&e.target.id==="buscar"){ renderTabla(); actualizarGraficos(); }});
-document.getElementById("btnSyncNube")?.addEventListener("click", async ()=>{ if(!isWriter){alert("Solo usuarios autorizados.");return} const arr=cargar(); try{ await Promise.all(arr.map(r=>saveToFirestore(r))); alert("Sincronización completa."); }catch(e){ alert("No se pudo sincronizar: "+e.message); } });
+document.getElementById("btnSyncNube")?.addEventListener("click", async ()=>{ if(!window.isWriter){alert("Solo usuarios autorizados.");return} const arr=cargar(); try{ await Promise.all(arr.map(r=>saveToFirestore(r))); alert("Sincronización completa."); }catch(e){ alert("No se pudo sincronizar: "+e.message); } });
 
-// ===== Init =====
+// Init
 cargarNubeUnaVez().then(()=>{ renderTabla(); actualizarGraficos(); subscribeRealtime(); });
 </script>
 </body>
