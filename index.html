@@ -404,30 +404,30 @@ const COL  = 'alarmas'; // colección en Firestore
 
 <!-- ==================== LÓGICA DE LA APP (LocalStorage + UI + Gráficos) ==================== -->
 <script>
-/* --- THEME --- */
+/* --- THEME (robusto) --- */
 const KEY_THEME = "alarmas_theme";
-function getSystemPrefersDark(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
-function applyTheme(theme){
-  document.documentElement.setAttribute('data-theme', theme);
-  const sw = document.getElementById('themeSwitch');
-  if (sw) sw.checked = (theme === 'dark');
-  actualizarGraficos();
+function setTheme(theme) {
+  const t = (theme || "dark").toLowerCase() === "light" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", t);
+  const sw = document.getElementById("themeSwitch");
+  if (sw) sw.checked = (t === "dark");
+  if (typeof actualizarGraficos === "function") {
+    try { actualizarGraficos(); } catch(_) {}
+  }
 }
-(function initTheme(){
-  const saved = localStorage.getItem(KEY_THEME);
-  let theme = saved || (getSystemPrefersDark() ? 'dark' : 'light');
-  if (!saved) theme = 'dark'; // por defecto oscuro
-  applyTheme(theme);
-  const sw = document.getElementById('themeSwitch');
+window.addEventListener("DOMContentLoaded", () => {
+  const saved = (localStorage.getItem(KEY_THEME) ||
+                (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light"));
+  setTheme(saved);
+  const sw = document.getElementById("themeSwitch");
   if (sw) {
-    sw.checked = (theme === 'dark');
-    sw.addEventListener('change', () => {
-      const next = sw.checked ? 'dark' : 'light';
+    sw.addEventListener("change", (e) => {
+      const next = e.target.checked ? "dark" : "light";
       localStorage.setItem(KEY_THEME, next);
-      applyTheme(next);
+      setTheme(next);
     });
   }
-})();
+});
 
 /* --- STORAGE --- */
 const KEY = "alarmas_2026";
@@ -705,12 +705,10 @@ async function deleteFromFirestore(id){
 
 <!-- ==================== AUTH + PERMISOS UI (Email/Password) ==================== -->
 <script>
-// ⚠️ Reemplaza por tus 4 correos autorizados:
+// ⚠️ Pon aquí los correos autorizados (en minúsculas). Ya agregué el tuyo:
 const ADMIN_EMAILS = new Set([
-  "operador1@central.cl",
-  "operador2@central.cl",
-  "operador3@central.cl",
-  "administrador@central.cl"
+  "alarmas@toxicos.cl"
+  // Agrega aquí los otros 3 correos cuando los tengas
 ]);
 
 let currentUser = null;
@@ -729,7 +727,7 @@ function updateUiPermissions(){
   const delAll  = document.getElementById('btnBorrarTodo'); if (delAll) delAll.disabled = !isWriter;
 }
 
-/* Login/Logout con Email/Password */
+/* Login/Logout con Email/Password (diálogo amigable) */
 const dlgLogin = document.getElementById('dlgLogin');
 document.getElementById('btnLogin')?.addEventListener('click', ()=>{
   if (dlgLogin) {
@@ -755,14 +753,15 @@ document.getElementById('btnLogout')?.addEventListener('click', async ()=>{
 
 /* Estado de sesión */
 auth.onAuthStateChanged(user=>{
+  const email = (user && user.email ? user.email.trim().toLowerCase() : "");
   currentUser = user;
-  isWriter = !!(user && user.email && ADMIN_EMAILS.has(user.email));
+  isWriter = !!(email && ADMIN_EMAILS.has(email));
 
   const loginBtn  = document.getElementById('btnLogin');
   const logoutBtn = document.getElementById('btnLogout');
   if (user) {
     if (loginBtn)  loginBtn.style.display  = 'none';
-    if (logoutBtn) { logoutBtn.style.display = 'inline-block'; logoutBtn.textContent = `Salir (${user.email})`; }
+    if (logoutBtn) { logoutBtn.style.display = 'inline-block'; logoutBtn.textContent = `Salir (${email})`; }
   } else {
     if (loginBtn)  loginBtn.style.display  = 'inline-block';
     if (logoutBtn) logoutBtn.style.display = 'none';
