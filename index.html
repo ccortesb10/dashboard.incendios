@@ -57,7 +57,7 @@
   .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .toolbar .grow{flex:1}
 
-  /* Dos filas: 3 arriba, 3 abajo cuando hay espacio */
+  /* Dos filas: 3 arriba, 3 abajo */
   .charts.top{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .charts.bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
   @media (max-width: 1100px){ .charts.bottom{grid-template-columns:repeat(2,1fr)} }
@@ -81,7 +81,7 @@
     <div class="header-row">
       <div>
         <h1>Contador de Alarmas 2026 🔥</h1>
-        <div class="muted">Revisa el ranking de quién da mas alarmas</div>
+        <div class="muted">Registrar (plegado) → Dashboard visible → Registros (plegado). Tema claro/oscuro con switch.</div>
       </div>
       <div class="theme-toggle">
         <span class="theme-label">☀️</span>
@@ -202,6 +202,16 @@
   <!-- Dashboard: 3 arriba, 3 abajo -->
   <div class="card">
     <h2>Dashboard</h2>
+
+    <!-- Botón y opción de filtros para ranking Compañía - OBAC -->
+    <div class="toolbar" style="margin:8px 0 10px; gap:8px; align-items:center; display:flex; flex-wrap:wrap;">
+      <div class="muted" style="margin-right:auto;">&nbsp;</div>
+      <label class="muted" style="display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="rk2_usarFiltros" checked /> Usar filtros (Mes / Búsqueda)
+      </label>
+      <button id="btnRankingCompObac" class="secondary">📋 Copiar “Compañía - OBAC”</button>
+    </div>
+
     <div class="charts top">
       <div class="chart-card">
         <h3 class="muted" style="margin-bottom:6px;">Por Compañía</h3>
@@ -417,7 +427,7 @@ function resumen(arr,mesSel){ const total=arr.length; const totalMes=mesSel?arr.
 
 // TABLA (acciones solo para isWriter)
 function renderTabla(){ const datos=ordenarDesc(cargar()); const filtrados=aplicaFiltros(datos); const tbody=document.querySelector("#tabla tbody"); if(!tbody) return; tbody.innerHTML=""; filtrados.forEach(d=>{ const tr=document.createElement("tr"); const accionesTd = (window.isWriter)
-  ? `<button class=\"gray\" onclick=\"abrirEditar('${d.id}')\">Editar</button> <button class=\"warn\" onclick=\"eliminar('${d.id}')\">Eliminar</button>`
+  ? `<button class="gray" onclick="abrirEditar('${d.id}')">Editar</button> <button class="warn" onclick="eliminar('${d.id}')">Eliminar</button>`
   : ""; tr.innerHTML=`
   <td>${d.fecha||""}</td>
   <td>${d.hora||""}</td>
@@ -445,7 +455,7 @@ function actualizarGraficos(){ const datos=aplicaFiltros(ordenarDesc(cargar()));
   const gT=agruparPor(datos,d=>d.tipo); if(chartTipo) chartTipo.destroy(); chartTipo=new Chart(document.getElementById("grafTipo"),{type:"doughnut",data:{labels:gT.etiquetas,datasets:[{data:gT.valores,backgroundColor:["#22c55e","#06b6d4"],borderWidth:0,hoverOffset:3}]},options:{...t.baseLegendBottom,cutout:"55%"}});
   // Mes
   const gM=agruparPor(datos,d=>(d.fecha||"").slice(0,7)); const pares=gM.etiquetas.map((k,i)=>[k,gM.valores[i]]).sort((a,b)=>a[0].localeCompare(b[0])); if(chartMes) chartMes.destroy(); chartMes=new Chart(document.getElementById("grafMes"),{type:"line",data:{labels:pares.map(p=>p[0]),datasets:[{label:"Alarmas por Mes",data:pares.map(p=>p[1]),borderColor:"#ef4444",backgroundColor:"rgba(239,68,68,.18)",pointRadius:2,tension:.2,fill:true}]},options:t.baseXY});
-  // OBAC (nuevo, donut)
+  // OBAC
   const gO=agruparPor(datos,d=>d.obac); if(chartObac) chartObac.destroy(); chartObac=new Chart(document.getElementById("grafObac"),{type:"doughnut",data:{labels:gO.etiquetas,datasets:[{data:gO.valores,backgroundColor:paletaN(gO.valores.length),borderWidth:0,hoverOffset:3}]},options:{...t.baseLegendBottom,cutout:"55%"}});
 }
 
@@ -497,6 +507,50 @@ document.getElementById("btnSyncNube")?.addEventListener("click", async ()=>{ if
 
 // Init
 cargarNubeUnaVez().then(()=>{ renderTabla(); actualizarGraficos(); subscribeRealtime(); });
+
+/*************** Utilidad: nombre de mes en español ***************/
+function nombreMesEs(aaaaMM){
+  const MESES=[ 'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre' ];
+  const m=parseInt((aaaaMM||'').slice(5,7),10); return (m>=1&&m<=12)?MESES[m-1]:aaaaMM;
+}
+
+/*************** Totales por mes (con o sin filtros) ***************/
+function construirLineasTotalesPorMes(usarFiltros){
+  const base=ordenarDesc(cargar());
+  const datos=usarFiltros?aplicaFiltros(base):base;
+  const mesSel=(document.getElementById('filtroMes')?.value||'').trim();
+  const mapMes=new Map();
+  for(const d of datos){ const k=(d.fecha||'').slice(0,7); if(!k) continue; mapMes.set(k,(mapMes.get(k)||0)+1); }
+  if(mesSel && mapMes.size){ const n=mapMes.get(mesSel)||0; return n>0?[`${nombreMesEs(mesSel)} = ${n}`]:[]; }
+  const orden=[...mapMes.entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+  return orden.map(([k,n])=>`${nombreMesEs(k)} = ${n}`);
+}
+
+/*************** RANKING Compañía - OBAC con totales de mes ***************/
+function construirRankingCompaniaObac(usarFiltros){
+  const base=ordenarDesc(cargar());
+  const datos=usarFiltros?aplicaFiltros(base):base;
+  const mapa=new Map();
+  for(const d of datos){ const compania=(d.compania||'').trim(); const obac=(d.obac||'').trim(); if(!compania||!obac) continue; const clave=`${compania} - ${obac}`; mapa.set(clave,(mapa.get(clave)||0)+1); }
+  const orden=[...mapa.entries()].sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0],'es'));
+  const titulo=`Contador Alarmas 2026 🔥`;
+  const lineasRanking=orden.map(([k,n])=>`${k} = ${n}`);
+  const lineasMes=construirLineasTotalesPorMes(usarFiltros);
+  return lineasMes.length ? [titulo, ...lineasRanking, ...lineasMes].join('\n') : [titulo, ...lineasRanking].join('\n');
+}
+
+/*************** Botón: copiar ranking ***************/
+(function initRankingCompObac(){
+  const btn=document.getElementById('btnRankingCompObac');
+  const chk=document.getElementById('rk2_usarFiltros');
+  if(!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const usar=!!(chk && chk.checked);
+    const texto=construirRankingCompaniaObac(usar);
+    try{ await navigator.clipboard.writeText(texto); alert('📋 Ranking copiado al portapapeles.'); }
+    catch(_){ const ta=document.createElement('textarea'); ta.value=texto; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('📋 Ranking copiado (método alternativo).'); }
+  });
+})();
 </script>
 </body>
 </html>
