@@ -211,6 +211,38 @@ const COL  = 'alarmas'; // colección en Firestore
             <option value="Canje">Canje</option>
           </select>
         </div>
+
+        <!-- NUEVO: Compañía (entre Cargo y OBAC) -->
+        <div>
+          <label for="compania">Compañía</label>
+          <select id="compania" required>
+            <option value="1° Compañía">1° Compañía</option>
+            <option value="2° Compañía">2° Compañía</option>
+            <option value="3° Compañía">3° Compañía</option>
+            <option value="4° Compañía">4° Compañía</option>
+            <option value="5° Compañía">5° Compañía</option>
+            <option value="6° Compañía">6° Compañía</option>
+            <option value="7° Compañía">7° Compañía</option>
+            <option value="8° Compañía">8° Compañía</option>
+            <option value="9° Compañía">9° Compañía</option>
+            <option value="10° Compañía">10° Compañía</option>
+            <option value="11° Compañía">11° Compañía</option>
+            <option value="12° Compañía">12° Compañía</option>
+            <option value="13° Compañía">13° Compañía</option>
+            <option value="14° Compañía">14° Compañía</option>
+            <option value="15° Compañía">15° Compañía</option>
+            <option value="16° Compañía">16° Compañía</option>
+            <option value="17° Compañía">17° Compañía</option>
+            <option value="18° Compañía">18° Compañía</option>
+            <option value="19° Compañía">19° Compañía</option>
+            <option value="20° Compañía">20° Compañía</option>
+            <option value="21° Compañía">21° Compañía</option>
+            <option value="22° Compañía">22° Compañía</option>
+            <option value="Comandancia">Comandancia</option>
+            <option value="Central">Central</option>
+          </select>
+        </div>
+
         <div>
           <label for="obac">OBAC</label>
           <input type="text" id="obac" placeholder="Ej: OBAC 1" required />
@@ -263,6 +295,10 @@ const COL  = 'alarmas'; // colección en Firestore
     <h2>Dashboard</h2>
     <div class="charts">
       <div class="chart-card">
+        <h3 class="muted" style="margin-bottom:6px;">Por Compañía</h3>
+        <canvas id="grafCompania"></canvas>
+      </div>
+      <div class="chart-card">
         <h3 class="muted" style="margin-bottom:6px;">Por Alarma</h3>
         <canvas id="grafAlarma"></canvas>
       </div>
@@ -289,7 +325,7 @@ const COL  = 'alarmas'; // colección en Firestore
           <input type="month" id="filtroMes" />
         </div>
         <div class="grow">
-          <label class="muted" for="buscar">Buscar (Cargo / OBAC / Alarma / Tipo / Dirección)</label>
+          <label class="muted" for="buscar">Buscar (Cargo / Compañía / OBAC / Alarma / Tipo / Dirección)</label>
           <input type="text" id="buscar" placeholder="Buscar..." />
         </div>
       </div>
@@ -302,6 +338,7 @@ const COL  = 'alarmas'; // colección en Firestore
             <th>Fecha</th>
             <th>Hora</th>
             <th>Cargo</th>
+            <th>Compañía</th>
             <th>OBAC</th>
             <th>Alarma</th>
             <th>Tipo</th>
@@ -345,6 +382,38 @@ const COL  = 'alarmas'; // colección en Firestore
             <option value="Canje">Canje</option>
           </select>
         </div>
+
+        <!-- NUEVO: Compañía en editar -->
+        <div>
+          <label for="e_compania">Compañía</label>
+          <select id="e_compania" required>
+            <option value="1° Compañía">1° Compañía</option>
+            <option value="2° Compañía">2° Compañía</option>
+            <option value="3° Compañía">3° Compañía</option>
+            <option value="4° Compañía">4° Compañía</option>
+            <option value="5° Compañía">5° Compañía</option>
+            <option value="6° Compañía">6° Compañía</option>
+            <option value="7° Compañía">7° Compañía</option>
+            <option value="8° Compañía">8° Compañía</option>
+            <option value="9° Compañía">9° Compañía</option>
+            <option value="10° Compañía">10° Compañía</option>
+            <option value="11° Compañía">11° Compañía</option>
+            <option value="12° Compañía">12° Compañía</option>
+            <option value="13° Compañía">13° Compañía</option>
+            <option value="14° Compañía">14° Compañía</option>
+            <option value="15° Compañía">15° Compañía</option>
+            <option value="16° Compañía">16° Compañía</option>
+            <option value="17° Compañía">17° Compañía</option>
+            <option value="18° Compañía">18° Compañía</option>
+            <option value="19° Compañía">19° Compañía</option>
+            <option value="20° Compañía">20° Compañía</option>
+            <option value="21° Compañía">21° Compañía</option>
+            <option value="22° Compañía">22° Compañía</option>
+            <option value="Comandancia">Comandancia</option>
+            <option value="Central">Central</option>
+          </select>
+        </div>
+
         <div>
           <label for="e_obac">OBAC</label>
           <input type="text" id="e_obac" required />
@@ -438,6 +507,7 @@ function cargar(){
   arr.forEach(r => {
     if (!r.id) { r.id = String(Date.now()) + Math.random().toString(16).slice(2); changed = true; }
     if (r.cargo === undefined)     { r.cargo = ""; changed = true; }
+    if (r.compania === undefined)  { r.compania = ""; changed = true; }  /* NUEVO */
     if (r.direccion === undefined) { r.direccion = ""; changed = true; }
   });
   if (changed) localStorage.setItem(KEY, JSON.stringify(arr));
@@ -446,7 +516,7 @@ function cargar(){
 function guardar(arr){ localStorage.setItem(KEY, JSON.stringify(arr)); }
 
 /* --- UI Helpers --- */
-let chartAlarma, chartTipo, chartMes, editId=null;
+let chartCompania, chartAlarma, chartTipo, chartMes, editId=null;
 const $ = (s)=>document.querySelector(s);
 function normaliza(s){ return (s||"").trim(); }
 function ordenarDesc(arr){
@@ -461,7 +531,7 @@ function aplicaFiltros(arr){
   const q = ($("#buscar")?.value || "").toLowerCase().trim();
   return arr.filter(d=>{
     const okMes = !mes || (d.fecha||"").startsWith(mes);
-    const text = `${d.cargo} ${d.obac} ${d.alarma} ${d.tipo} ${d.direccion}`.toLowerCase();
+    const text = `${d.cargo} ${d.compania} ${d.obac} ${d.alarma} ${d.tipo} ${d.direccion}`.toLowerCase(); /* NUEVO */
     const okQ = !q || text.includes(q);
     return okMes && okQ;
   });
@@ -485,6 +555,7 @@ function renderTabla(){
       <td>${d.fecha||""}</td>
       <td>${d.hora||""}</td>
       <td>${d.cargo||""}</td>
+      <td>${d.compania||""}</td>   <!-- NUEVA -->
       <td>${d.obac||""}</td>
       <td>${d.alarma||""}</td>
       <td>${d.tipo||""}</td>
@@ -520,10 +591,29 @@ function themeChartOptions(){
   };
 }
 function agruparPor(arr, sel){ const m=new Map(); arr.forEach(x=>{const k=sel(x); if(!k)return; m.set(k,(m.get(k)||0)+1);}); return { etiquetas:[...m.keys()], valores:[...m.values()] }; }
+
+/* Paleta para “Por Compañía” (24 colores, cicla si hay más) */
+const PALETA = [
+  "#ef4444","#f97316","#eab308","#22c55e","#06b6d4","#3b82f6","#8b5cf6","#ec4899",
+  "#14b8a6","#84cc16","#f59e0b","#fb7185","#38bdf8","#a78bfa","#10b981","#f472b6",
+  "#93c5fd","#fde047","#34d399","#c084fc","#60a5fa","#fda4af","#4ade80","#facc15"
+];
+function paletaN(n){ const out=[]; for(let i=0;i<n;i++) out.push(PALETA[i%PALETA.length]); return out; }
+
 function actualizarGraficos(){
   const datos = aplicaFiltros(ordenarDesc(cargar()));
   const t = themeChartOptions();
-  // Alarma (donut)
+
+  // Por Compañía (DONUT) – puede haber hasta 24 categorías
+  const gC = agruparPor(datos, d=>d.compania);
+  if (chartCompania) chartCompania.destroy();
+  chartCompania = new Chart(document.getElementById("grafCompania"), {
+    type:"doughnut",
+    data:{ labels:gC.etiquetas, datasets:[{ data:gC.valores, backgroundColor: paletaN(gC.valores.length), borderWidth:0, hoverOffset:3 }] },
+    options:{ ...t.baseLegendBottom, cutout:"55%" }
+  });
+
+  // Por Alarma (DONUT)
   const gA = agruparPor(datos, d=>d.alarma);
   if (chartAlarma) chartAlarma.destroy();
   chartAlarma = new Chart(document.getElementById("grafAlarma"), {
@@ -531,7 +621,8 @@ function actualizarGraficos(){
     data:{ labels:gA.etiquetas, datasets:[{ data:gA.valores, backgroundColor:["#ef4444","#f97316","#eab308"], borderWidth:0, hoverOffset:3 }] },
     options:{ ...t.baseLegendBottom, cutout:"55%" }
   });
-  // Tipo (donut)
+
+  // Por Tipo (DONUT)
   const gT = agruparPor(datos, d=>d.tipo);
   if (chartTipo) chartTipo.destroy();
   chartTipo = new Chart(document.getElementById("grafTipo"), {
@@ -539,7 +630,8 @@ function actualizarGraficos(){
     data:{ labels:gT.etiquetas, datasets:[{ data:gT.valores, backgroundColor:["#22c55e","#06b6d4"], borderWidth:0, hoverOffset:3 }] },
     options:{ ...t.baseLegendBottom, cutout:"55%" }
   });
-  // Mes (línea)
+
+  // Por Mes (LÍNEA)
   const gM = agruparPor(datos, d=>(d.fecha||"").slice(0,7));
   const pares = gM.etiquetas.map((k,i)=>[k,gM.valores[i]]).sort((a,b)=>a[0].localeCompare(b[0]));
   if (chartMes) chartMes.destroy();
@@ -555,12 +647,13 @@ function validar(){
   const fecha = $("#fecha")?.value;
   const hora  = $("#hora")?.value;
   const cargo = $("#cargo")?.value;
+  const compania = $("#compania")?.value;    /* NUEVO */
   const obac  = normaliza($("#obac")?.value);
   const alarma= $("#alarma")?.value;
   const tipo  = $("#tipo")?.value;
   const direccion = normaliza($("#direccion")?.value);
-  if (!fecha || !hora || !cargo || !obac || !alarma || !tipo) return null;
-  return { fecha, hora, cargo, obac, alarma, tipo, direccion };
+  if (!fecha || !hora || !cargo || !compania || !obac || !alarma || !tipo) return null; /* NUEVO */
+  return { fecha, hora, cargo, compania, obac, alarma, tipo, direccion };                /* NUEVO */
 }
 async function guardarRegistro(){
   if (!isWriter) { alert("Solo usuarios autorizados pueden registrar."); return; }
@@ -572,9 +665,10 @@ async function guardarRegistro(){
   guardar(arr);
   try { await saveToFirestore(newReg); } catch(e){ console.error(e); alert("No se pudo guardar en la nube."); }
   ["fecha","hora","obac","direccion"].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=""; });
-  if ($("#cargo"))  $("#cargo").value  = "Comandante 1";
-  if ($("#alarma")) $("#alarma").value = "PRIMERA ALARMA";
-  if ($("#tipo"))   $("#tipo").value   = "Estructural";
+  if ($("#cargo"))    $("#cargo").value    = "Comandante 1";
+  if ($("#compania")) $("#compania").value = "1° Compañía";     /* NUEVO */
+  if ($("#alarma"))   $("#alarma").value   = "PRIMERA ALARMA";
+  if ($("#tipo"))     $("#tipo").value     = "Estructural";
   renderTabla(); actualizarGraficos();
 }
 async function eliminar(id){
@@ -592,6 +686,7 @@ function abrirEditar(id){
   $("#e_fecha").value  = r.fecha || "";
   $("#e_hora").value   = r.hora  || "";
   $("#e_cargo").value  = r.cargo || "Comandante 1";
+  $("#e_compania").value = r.compania || "1° Compañía";  /* NUEVO */
   $("#e_obac").value   = r.obac  || "";
   $("#e_alarma").value = r.alarma|| "PRIMERA ALARMA";
   $("#e_tipo").value   = r.tipo  || "Estructural";
@@ -609,6 +704,7 @@ document.querySelector("#dlgEditar form").addEventListener("submit", async (ev)=
       fecha: $("#e_fecha").value,
       hora:  $("#e_hora").value,
       cargo: $("#e_cargo").value,
+      compania: $("#e_compania").value,       /* NUEVO */
       obac:  normaliza($("#e_obac").value),
       alarma:$("#e_alarma").value,
       tipo:  $("#e_tipo").value,
@@ -624,10 +720,10 @@ document.querySelector("#dlgEditar form").addEventListener("submit", async (ev)=
 /* --- Exportar / Importar --- */
 function exportarCSV(){
   const arr = aplicaFiltros(ordenarDesc(cargar()));
-  let csv = "Fecha,Hora,Cargo,OBAC,Alarma,Tipo,Dirección\n";
+  let csv = "Fecha,Hora,Cargo,Compañía,OBAC,Alarma,Tipo,Dirección\n"; /* NUEVO */
   arr.forEach(d=>{
     const dir = (d.direccion||"").replace(/\"/g,'\"');
-    csv += `${d.fecha},${d.hora},${d.cargo},${d.obac},${d.alarma},${d.tipo},"${dir}"\n`;
+    csv += `${d.fecha},${d.hora},${d.cargo},${d.compania},${d.obac},${d.alarma},${d.tipo},"${dir}"\n`; /* NUEVO */
   });
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "alarmas_2026.csv"; a.click();
@@ -645,7 +741,11 @@ function importarJSON(file){
       if (!Array.isArray(imported)) throw new Error("Formato inválido.");
       const norm = imported.map(d=>({
         id: d.id || String(Date.now())+Math.random().toString(16).slice(2),
-        fecha:d.fecha, hora:d.hora, cargo: d.cargo||"", obac:d.obac, alarma:d.alarma, tipo:d.tipo, direccion:d.direccion||""
+        fecha:d.fecha, hora:d.hora,
+        cargo: d.cargo || "",
+        compania: d.compania || "",    /* NUEVO */
+        obac:d.obac, alarma:d.alarma, tipo:d.tipo,
+        direccion: d.direccion || ""
       }));
       const actual = cargar(); guardar([...actual, ...norm]);
       renderTabla(); actualizarGraficos(); alert("Importación completada.");
