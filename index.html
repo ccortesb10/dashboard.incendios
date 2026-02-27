@@ -5,15 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Contador de Alarmas 2026</title>
 
-<!-- Chart.js (CDN oficial) -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <!-- Firebase SDKs (compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
 <script>
-// ⚠️ Tu config (ya la tengo de tu mensaje)
+// ==================== Firebase Config (tu config real) ====================
 const firebaseConfig = {
   apiKey: "AIzaSyAHrcx9UK40TiW4BCFZOPHKj5XrJ_2OKBI",
   authDomain: "alarmas-2026.firebaseapp.com",
@@ -23,17 +24,12 @@ const firebaseConfig = {
   appId: "1:522655513477:web:816d4bb49aff6f798f62ec",
   measurementId: "G-5BLMH5VGHV"
 };
-
-// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
-
-// Servicios que usaremos
 const db   = firebase.firestore();
 const auth = firebase.auth();
-
-// Colección en Firestore para tus registros
-const COL = 'alarmas';
+const COL  = 'alarmas'; // colección en Firestore
 </script>
+
 <style>
   /* ==================== THEMING ==================== */
   :root {
@@ -90,37 +86,30 @@ const COL = 'alarmas';
     border: 1px solid var(--border);
   }
 
-  /* Switch de tema */
+  /* Header + switch */
   .header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .theme-toggle { display:flex; align-items:center; gap:8px; }
   .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
   .switch input { opacity: 0; width: 0; height: 0; }
-  .slider {
-    position: absolute; cursor: pointer; inset: 0; border: 1px solid var(--border);
-    background-color: #64748b; transition: .2s; border-radius: 999px;
-  }
-  .slider:before {
-    position: absolute; content: ""; height: 20px; width: 20px; left: 3px; top: 2px;
-    background-color: white; transition: .2s; border-radius: 50%;
-  }
-  input:checked + .slider { background-color: #ef4444; }
+  .slider { position:absolute; inset:0; cursor:pointer; border:1px solid var(--border); background:#64748b; transition:.2s; border-radius:999px; }
+  .slider:before { position:absolute; content:""; height:20px; width:20px; left:3px; top:2px; background:#fff; transition:.2s; border-radius:50%; }
+  input:checked + .slider { background:#ef4444; }
   input:checked + .slider:before { transform: translateX(22px); }
   .theme-label { font-size: 13px; color: var(--muted); }
 
-  /* Details/summary (secciones plegables) */
+  /* Details/summary (plegables) */
   details { border-radius: 8px; }
   summary {
     list-style: none; cursor: pointer; font-weight: 700;
-    padding: 8px 10px; border-radius: 8px; display:flex; align-items:center; gap:8px;
-    color: var(--text);
+    padding: 8px 10px; border-radius: 8px; display:flex; align-items:center; gap:8px; color: var(--text);
   }
   summary::marker { display:none; }
   summary .badge {
-    background: rgba(239, 68, 68, .15);
-    color: var(--primary);
+    background: rgba(239, 68, 68, .15); color: var(--primary);
     padding:2px 8px; border-radius:12px; font-size:12px; border: 1px solid var(--border);
   }
 
+  /* Formulario */
   .row { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:8px; }
   label { display:block; margin:4px 0 3px; font-weight:600; font-size:13px; color: var(--muted); }
   input, select {
@@ -129,8 +118,6 @@ const COL = 'alarmas';
   }
   :root[data-theme="light"] input, :root[data-theme="light"] select { background:#ffffff; color: var(--text); }
   input::placeholder { color:#7a8699; }
-
-  /* Botones */
   .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
   button {
     padding:8px 10px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer;
@@ -148,41 +135,35 @@ const COL = 'alarmas';
   th, td { border:1px solid var(--border); padding:6px; text-align:center; }
   th { background:#0b0f14; color: var(--muted); }
   :root[data-theme="light"] th { background:#f8fafc; }
-
-  /* Toolbar y filtros */
   .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
   .toolbar .grow { flex:1; }
 
-  /* Gráficos compactos (proporción correcta) */
+  /* Dashboard (gráficos compactos) */
   .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
   .charts .chart-card {
-    padding: 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: #0b0f14;
-    height: 180px; /* altura fija del contenedor */
+    padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #0b0f14; height: 180px;
   }
   :root[data-theme="light"] .charts .chart-card { background:#ffffff; }
-  .charts .chart-card canvas {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
-  }
+  .charts .chart-card canvas { width: 100% !important; height: 100% !important; display: block; }
 
   /* Dirección con botón al lado */
   .direccion-group { display:flex; gap:6px; align-items:flex-end; }
   .direccion-group > div { flex: 1; }
+
+  /* Login dialog */
+  dialog { border:none; border-radius:10px; width:min(420px, 96vw); padding:16px; background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- Encabezado con switch -->
+  <!-- Header: título + switch + login -->
   <div class="card">
     <div class="header-row">
       <div>
         <h1>Contador de Alarmas 2026 🔥</h1>
-        <div class="muted"> Tema claro/oscuro con switch.</div>
+        <div class="muted">Registrar (plegado) → Dashboard visible → Registros (plegado). Tema claro/oscuro con switch.</div>
       </div>
 
       <div class="theme-toggle">
@@ -192,12 +173,15 @@ const COL = 'alarmas';
           <span class="slider"></span>
         </label>
         <span class="theme-label">🌙</span>
+        <!-- Botones de sesión -->
+        <button id="btnLogin"  class="secondary" style="margin-left:10px;">Ingresar</button>
+        <button id="btnLogout" class="gray" style="display:none;">Salir</button>
       </div>
     </div>
   </div>
 
-  <!-- 1) REGISTRAR (PLEGADO por defecto) -->
-  <div class="card">
+  <!-- 1) REGISTRAR (plegado por defecto; visible sólo si isWriter) -->
+  <div class="card" id="cardRegistrar" style="display:none"><!-- La UI lo controla -->
     <details>
       <summary>➕ Registrar alarma <span class="badge">compacto</span></summary>
       <div class="row">
@@ -246,7 +230,6 @@ const COL = 'alarmas';
             <option value="Forestal">Forestal</option>
           </select>
         </div>
-
         <!-- Dirección + botón de ubicación -->
         <div class="direccion-group" style="grid-column: 1 / -1;">
           <div>
@@ -270,14 +253,14 @@ const COL = 'alarmas';
         <button id="btnBorrarTodo" class="warn">🗑️ Borrar todo</button>
       </div>
       <div class="muted" style="margin-top:6px">
-        * Los datos se guardan localmente (LocalStorage). Para sincronizar entre equipos podemos conectar Google Sheets o Firebase si te sirve.
+        * Los datos se guardan localmente; además se sincronizan con Firestore para usuarios autorizados.
       </div>
     </details>
   </div>
 
-  <!-- 2) DASHBOARD (siempre visible) -->
+  <!-- 2) DASHBOARD (visible al entrar) -->
   <div class="card">
-    <h2> 📈Dashboard</h2>
+    <h2>Dashboard</h2>
     <div class="charts">
       <div class="chart-card">
         <h3 class="muted" style="margin-bottom:6px;">Por Alarma</h3>
@@ -294,10 +277,10 @@ const COL = 'alarmas';
     </div>
   </div>
 
-  <!-- 3) REGISTROS (PLEGABLE) -->
+  <!-- 3) REGISTROS (plegable) -->
   <div class="card">
     <details>
-      <summary>📄➕ Registros <span class="badge">tabla</span></summary>
+      <summary>📄 Registros <span class="badge">tabla</span></summary>
 
       <div class="toolbar" style="margin-top:8px;">
         <h2 style="margin-right:auto;">&nbsp;</h2>
@@ -393,41 +376,47 @@ const COL = 'alarmas';
     </form>
   </dialog>
 
+  <!-- Diálogo de Login (Email/Password) -->
+  <dialog id="dlgLogin">
+    <form id="formLogin" method="dialog">
+      <h3>Ingresar</h3>
+      <div class="row">
+        <div style="grid-column:1/-1;">
+          <label for="login_email">Correo</label>
+          <input type="email" id="login_email" required placeholder="operador@central.cl" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label for="login_pass">Contraseña</label>
+          <input type="password" id="login_pass" required placeholder="••••••••" />
+        </div>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button type="submit">🔑 Ingresar</button>
+        <button type="button" class="gray" onclick="document.getElementById('dlgLogin').close()">Cancelar</button>
+      </div>
+      <div class="muted" style="margin-top:8px">
+        * Las cuentas se crean en la consola de Firebase por el administrador.
+      </div>
+    </form>
+  </dialog>
+
 </div>
 
+<!-- ==================== LÓGICA DE LA APP (LocalStorage + UI + Gráficos) ==================== -->
 <script>
-/* ==================== Almacenamiento ==================== */
-const KEY = "alarmas_2026";
+/* --- THEME --- */
 const KEY_THEME = "alarmas_theme";
-
-/** Carga registros desde LocalStorage; asegura compatibilidad con campos nuevos. */
-function cargar(){
-  let arr;
-  try { arr = JSON.parse(localStorage.getItem(KEY)) || []; } catch { arr = []; }
-  let changed = false;
-  arr.forEach(r => {
-    if (!r.id)        { r.id = String(Date.now()) + Math.random().toString(16).slice(2); changed = true; }
-    if (r.cargo === undefined)     { r.cargo = ""; changed = true; }
-    if (r.direccion === undefined) { r.direccion = ""; changed = true; }
-  });
-  if (changed) localStorage.setItem(KEY, JSON.stringify(arr));
-  return arr;
-}
-function guardar(arr){ localStorage.setItem(KEY, JSON.stringify(arr)); }
-
-/* ==================== Tema (switch) ==================== */
 function getSystemPrefersDark(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
-function getSavedTheme(){ return localStorage.getItem(KEY_THEME); }
 function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   const sw = document.getElementById('themeSwitch');
   if (sw) sw.checked = (theme === 'dark');
-  actualizarGraficos(); // re-render para aplicar colores
+  actualizarGraficos();
 }
-function initTheme(){
-  const saved = getSavedTheme();
+(function initTheme(){
+  const saved = localStorage.getItem(KEY_THEME);
   let theme = saved || (getSystemPrefersDark() ? 'dark' : 'light');
-  if (!saved) theme = 'dark'; // oscuro por defecto
+  if (!saved) theme = 'dark'; // por defecto oscuro
   applyTheme(theme);
   const sw = document.getElementById('themeSwitch');
   if (sw) {
@@ -438,13 +427,27 @@ function initTheme(){
       applyTheme(next);
     });
   }
+})();
+
+/* --- STORAGE --- */
+const KEY = "alarmas_2026";
+function cargar(){
+  let arr;
+  try { arr = JSON.parse(localStorage.getItem(KEY)) || []; } catch { arr = []; }
+  let changed = false;
+  arr.forEach(r => {
+    if (!r.id) { r.id = String(Date.now()) + Math.random().toString(16).slice(2); changed = true; }
+    if (r.cargo === undefined)     { r.cargo = ""; changed = true; }
+    if (r.direccion === undefined) { r.direccion = ""; changed = true; }
+  });
+  if (changed) localStorage.setItem(KEY, JSON.stringify(arr));
+  return arr;
 }
+function guardar(arr){ localStorage.setItem(KEY, JSON.stringify(arr)); }
 
-/* ==================== Estado UI ==================== */
-let chartAlarma, chartTipo, chartMes;
-let editId = null;
-const $ = (s) => document.querySelector(s);
-
+/* --- UI Helpers --- */
+let chartAlarma, chartTipo, chartMes, editId=null;
+const $ = (s)=>document.querySelector(s);
 function normaliza(s){ return (s||"").trim(); }
 function ordenarDesc(arr){
   return [...arr].sort((a,b)=>{
@@ -469,12 +472,12 @@ function resumen(arr, mesSel){
   return { total, totalMes };
 }
 
-/* ==================== Render Tabla & Resumen ==================== */
+/* --- Tabla --- */
 function renderTabla(){
   const datos = ordenarDesc(cargar());
   const filtrados = aplicaFiltros(datos);
   const tbody = document.querySelector("#tabla tbody");
-  if (!tbody) return; // por si la sección está plegada y aún no se montó
+  if (!tbody) return;
   tbody.innerHTML = "";
   filtrados.forEach(d=>{
     const tr = document.createElement("tr");
@@ -493,7 +496,6 @@ function renderTabla(){
     `;
     tbody.appendChild(tr);
   });
-
   const res = document.getElementById("resumen");
   if (res) {
     const r = resumen(filtrados, document.getElementById("filtroMes")?.value || "");
@@ -503,273 +505,284 @@ function renderTabla(){
   }
 }
 
-/* ==================== Gráficos (colores según tema + proporción correcta) ==================== */
+/* --- Gráficos --- */
 function themeChartOptions(){
   const cs = getComputedStyle(document.documentElement);
   const grid   = cs.getPropertyValue('--chart-grid').trim();
   const ticks  = cs.getPropertyValue('--chart-ticks').trim();
   const legend = cs.getPropertyValue('--chart-legend').trim();
-
-  const legendLabels = {
-    color: legend,
-    boxWidth: 10,
-    boxHeight: 10,
-    padding: 8,
-    usePointStyle: false,
-    font: { size: 10 }
-  };
-  const tickStyle = { color: ticks, font: { size: 10 } };
-
+  const legendLabels = { color: legend, boxWidth:10, boxHeight:10, padding:8, font:{size:10} };
+  const tickStyle = { color: ticks, font:{ size:10 } };
   return {
-    baseLegendBottom: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: "bottom", labels: legendLabels } }
-    },
-    baseXY: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: tickStyle, grid: { color: grid } },
-        y: { ticks: { ...tickStyle, precision: 0 }, grid: { color: grid }, beginAtZero: true }
-      }
-    }
+    baseLegendBottom: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:"bottom", labels: legendLabels } } },
+    baseXY: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } },
+      scales: { x:{ ticks:tickStyle, grid:{color:grid} }, y:{ ticks:{...tickStyle, precision:0}, grid:{color:grid}, beginAtZero:true } } }
   };
 }
-
-function agruparPor(arr, sel){
-  const m = new Map();
-  arr.forEach(x => { const k = sel(x); if (!k) return; m.set(k, (m.get(k)||0)+1); });
-  const etiquetas = [...m.keys()];
-  const valores = [...m.values()];
-  return { etiquetas, valores };
-}
-
+function agruparPor(arr, sel){ const m=new Map(); arr.forEach(x=>{const k=sel(x); if(!k)return; m.set(k,(m.get(k)||0)+1);}); return { etiquetas:[...m.keys()], valores:[...m.values()] }; }
 function actualizarGraficos(){
   const datos = aplicaFiltros(ordenarDesc(cargar()));
   const t = themeChartOptions();
-
-  // Por Alarma (DONUT) + sin borde
-  const gA = agruparPor(datos, d => d.alarma);
+  // Alarma (donut)
+  const gA = agruparPor(datos, d=>d.alarma);
   if (chartAlarma) chartAlarma.destroy();
   chartAlarma = new Chart(document.getElementById("grafAlarma"), {
-    type: "doughnut",
-    data: {
-      labels: gA.etiquetas,
-      datasets: [{
-        data: gA.valores,
-        backgroundColor: ["#ef4444","#f97316","#eab308"],
-        borderWidth: 0,
-        hoverOffset: 3
-      }]
-    },
-    options: { ...t.baseLegendBottom, cutout: "55%" }
+    type:"doughnut",
+    data:{ labels:gA.etiquetas, datasets:[{ data:gA.valores, backgroundColor:["#ef4444","#f97316","#eab308"], borderWidth:0, hoverOffset:3 }] },
+    options:{ ...t.baseLegendBottom, cutout:"55%" }
   });
-
-  // Por Tipo (DONUT) + sin borde
-  const gT = agruparPor(datos, d => d.tipo);
+  // Tipo (donut)
+  const gT = agruparPor(datos, d=>d.tipo);
   if (chartTipo) chartTipo.destroy();
   chartTipo = new Chart(document.getElementById("grafTipo"), {
-    type: "doughnut",
-    data: {
-      labels: gT.etiquetas,
-      datasets: [{
-        data: gT.valores,
-        backgroundColor: ["#22c55e","#06b6d4"],
-        borderWidth: 0,
-        hoverOffset: 3
-      }]
-    },
-    options: { ...t.baseLegendBottom, cutout: "55%" }
+    type:"doughnut",
+    data:{ labels:gT.etiquetas, datasets:[{ data:gT.valores, backgroundColor:["#22c55e","#06b6d4"], borderWidth:0, hoverOffset:3 }] },
+    options:{ ...t.baseLegendBottom, cutout:"55%" }
   });
-
-  // Por Mes (LÍNEA)
-  const gM = agruparPor(datos, d => (d.fecha||"").slice(0,7));
+  // Mes (línea)
+  const gM = agruparPor(datos, d=>(d.fecha||"").slice(0,7));
   const pares = gM.etiquetas.map((k,i)=>[k,gM.valores[i]]).sort((a,b)=>a[0].localeCompare(b[0]));
   if (chartMes) chartMes.destroy();
   chartMes = new Chart(document.getElementById("grafMes"), {
-    type: "line",
-    data: {
-      labels: pares.map(p=>p[0]),
-      datasets: [{
-        label:"Alarmas por Mes",
-        data: pares.map(p=>p[1]),
-        borderColor:"#ef4444",
-        backgroundColor:"rgba(239,68,68,.18)",
-        pointRadius: 2,
-        tension:.2,
-        fill:true
-      }]
-    },
+    type:"line",
+    data:{ labels: pares.map(p=>p[0]), datasets:[{ label:"Alarmas por Mes", data: pares.map(p=>p[1]), borderColor:"#ef4444", backgroundColor:"rgba(239,68,68,.18)", pointRadius:2, tension:.2, fill:true }] },
     options: t.baseXY
   });
 }
 
-/* ==================== CRUD ==================== */
+/* --- CRUD Local + Validaciones --- */
 function validar(){
-  const fecha = document.getElementById("fecha").value;
-  const hora  = document.getElementById("hora").value;
-  const cargo = document.getElementById("cargo").value;
-  const obac  = normaliza(document.getElementById("obac").value);
-  const alarma= document.getElementById("alarma").value;
-  const tipo  = document.getElementById("tipo").value;
-  const direccion = normaliza(document.getElementById("direccion").value); // opcional
+  const fecha = $("#fecha")?.value;
+  const hora  = $("#hora")?.value;
+  const cargo = $("#cargo")?.value;
+  const obac  = normaliza($("#obac")?.value);
+  const alarma= $("#alarma")?.value;
+  const tipo  = $("#tipo")?.value;
+  const direccion = normaliza($("#direccion")?.value);
   if (!fecha || !hora || !cargo || !obac || !alarma || !tipo) return null;
   return { fecha, hora, cargo, obac, alarma, tipo, direccion };
 }
-function guardarRegistro(){
+async function guardarRegistro(){
+  if (!isWriter) { alert("Solo usuarios autorizados pueden registrar."); return; }
   const reg = validar();
   if (!reg) { alert("Completa todos los campos obligatorios."); return; }
   const arr = cargar();
-  arr.push({ id: String(Date.now())+Math.random().toString(16).slice(2), ...reg });
+  const newReg = { id: String(Date.now())+Math.random().toString(16).slice(2), ...reg };
+  arr.push(newReg);
   guardar(arr);
-  ["fecha","hora","obac","direccion"].forEach(id => document.getElementById(id).value = "");
-  document.getElementById("cargo").value  = "Comandante 1";
-  document.getElementById("alarma").value = "PRIMERA ALARMA";
-  document.getElementById("tipo").value   = "Estructural";
+  try { await saveToFirestore(newReg); } catch(e){ console.error(e); alert("No se pudo guardar en la nube."); }
+  ["fecha","hora","obac","direccion"].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=""; });
+  if ($("#cargo"))  $("#cargo").value  = "Comandante 1";
+  if ($("#alarma")) $("#alarma").value = "PRIMERA ALARMA";
+  if ($("#tipo"))   $("#tipo").value   = "Estructural";
   renderTabla(); actualizarGraficos();
 }
-function eliminar(id){
+async function eliminar(id){
+  if (!isWriter) { alert("Solo usuarios autorizados pueden eliminar."); return; }
   if (!confirm("¿Eliminar este registro?")) return;
-  const arr = cargar().filter(x => x.id !== id);
+  const arr = cargar().filter(x=>x.id !== id);
   guardar(arr);
+  try { await deleteFromFirestore(id); } catch(e){ console.error(e); alert("No se pudo eliminar en la nube."); }
   renderTabla(); actualizarGraficos();
 }
 function abrirEditar(id){
-  const r = cargar().find(x => x.id === id);
+  const r = cargar().find(x=>x.id===id);
   if (!r) return;
   editId = id;
-  document.getElementById("e_fecha").value  = r.fecha || "";
-  document.getElementById("e_hora").value   = r.hora  || "";
-  document.getElementById("e_cargo").value  = r.cargo || "Comandante 1";
-  document.getElementById("e_obac").value   = r.obac  || "";
-  document.getElementById("e_alarma").value = r.alarma|| "PRIMERA ALARMA";
-  document.getElementById("e_tipo").value   = r.tipo  || "Estructural";
-  document.getElementById("e_direccion").value = r.direccion || "";
-  document.getElementById("dlgEditar").showModal();
+  $("#e_fecha").value  = r.fecha || "";
+  $("#e_hora").value   = r.hora  || "";
+  $("#e_cargo").value  = r.cargo || "Comandante 1";
+  $("#e_obac").value   = r.obac  || "";
+  $("#e_alarma").value = r.alarma|| "PRIMERA ALARMA";
+  $("#e_tipo").value   = r.tipo  || "Estructural";
+  $("#e_direccion").value = r.direccion || "";
+  $("#dlgEditar").showModal();
 }
 document.getElementById("dlgEditar").addEventListener("close", ()=>{ editId=null; });
-document.querySelector("#dlgEditar form").addEventListener("submit",(ev)=>{
+document.querySelector("#dlgEditar form").addEventListener("submit", async (ev)=>{
   ev.preventDefault();
   const arr = cargar();
-  const i = arr.findIndex(x => x.id === editId);
-  if (i >= 0){
+  const i = arr.findIndex(x=>x.id===editId);
+  if (i>=0){
     arr[i] = {
       ...arr[i],
-      fecha: document.getElementById("e_fecha").value,
-      hora:  document.getElementById("e_hora").value,
-      cargo: document.getElementById("e_cargo").value,
-      obac:  normaliza(document.getElementById("e_obac").value),
-      alarma:document.getElementById("e_alarma").value,
-      tipo:  document.getElementById("e_tipo").value,
-      direccion: normaliza(document.getElementById("e_direccion").value)
+      fecha: $("#e_fecha").value,
+      hora:  $("#e_hora").value,
+      cargo: $("#e_cargo").value,
+      obac:  normaliza($("#e_obac").value),
+      alarma:$("#e_alarma").value,
+      tipo:  $("#e_tipo").value,
+      direccion: normaliza($("#e_direccion").value)
     };
     guardar(arr);
+    try { await saveToFirestore(arr[i]); } catch(e){ console.error(e); alert("No se pudo guardar cambios en la nube."); }
   }
-  document.getElementById("dlgEditar").close();
+  $("#dlgEditar").close();
   renderTabla(); actualizarGraficos();
 });
 
-/* ==================== Exportar / Importar ==================== */
+/* --- Exportar / Importar --- */
 function exportarCSV(){
   const arr = aplicaFiltros(ordenarDesc(cargar()));
   let csv = "Fecha,Hora,Cargo,OBAC,Alarma,Tipo,Dirección\n";
-  arr.forEach(d => {
-    const dir = (d.direccion||"").replace(/\"/g, '\"');
+  arr.forEach(d=>{
+    const dir = (d.direccion||"").replace(/\"/g,'\"');
     csv += `${d.fecha},${d.hora},${d.cargo},${d.obac},${d.alarma},${d.tipo},"${dir}"\n`;
   });
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "alarmas_2026.csv";
-  a.click();
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "alarmas_2026.csv"; a.click();
 }
 function exportarJSON(){
   const arr = cargar();
   const blob = new Blob([JSON.stringify(arr, null, 2)], {type:"application/json;charset=utf-8;"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "alarmas_2026_backup.json";
-  a.click();
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "alarmas_2026_backup.json"; a.click();
 }
 function importarJSON(file){
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = ()=>{
     try{
       const imported = JSON.parse(reader.result);
       if (!Array.isArray(imported)) throw new Error("Formato inválido.");
-      const norm = imported.map(d => ({
+      const norm = imported.map(d=>({
         id: d.id || String(Date.now())+Math.random().toString(16).slice(2),
-        fecha:d.fecha, hora:d.hora, cargo: d.cargo || "", obac:d.obac,
-        alarma:d.alarma, tipo:d.tipo, direccion: d.direccion || ""
+        fecha:d.fecha, hora:d.hora, cargo: d.cargo||"", obac:d.obac, alarma:d.alarma, tipo:d.tipo, direccion:d.direccion||""
       }));
-      const actual = cargar();
-      guardar([...actual, ...norm]);
-      renderTabla(); actualizarGraficos();
-      alert("Importación completada.");
-    } catch(e){
-      alert("No se pudo importar: " + e.message);
-    }
+      const actual = cargar(); guardar([...actual, ...norm]);
+      renderTabla(); actualizarGraficos(); alert("Importación completada.");
+    }catch(e){ alert("No se pudo importar: "+e.message); }
   };
   reader.readAsText(file, "utf-8");
 }
 
-/* ==================== Ubicación (rellenar Dirección) ==================== */
+/* --- Ubicación (OSM/Nominatim) --- */
 async function usarUbicacion(){
-  if (!navigator.geolocation) {
-    alert("Geolocalización no soportada por este navegador.");
-    return;
-  }
-  try {
-    const pos = await new Promise((res, rej) => {
-      navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy:true, timeout:10000 });
-    });
+  if (!navigator.geolocation) { alert("Geolocalización no soportada."); return; }
+  try{
+    const pos = await new Promise((res, rej)=>{ navigator.geolocation.getCurrentPosition(res, rej, {enableHighAccuracy:true, timeout:10000}); });
     const { latitude: lat, longitude: lon } = pos.coords;
-
     const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&addressdetails=1`;
     let direccion = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
-
     try {
       const resp = await fetch(url, { headers: { "Accept-Language": "es-CL,es;q=0.9" } });
       if (resp.ok) {
         const data = await resp.json();
         if (data && data.display_name) direccion = data.display_name;
       }
-    } catch (_) { /* si falla, usamos Lat/Lon */ }
-
-    const input = document.getElementById("direccion");
-    input.value = direccion;
-    input.focus();
-  } catch (err) {
-    alert("No se pudo obtener tu ubicación. Revisa permisos de GPS/ubicación.");
-  }
+    } catch(_) {}
+    const input = document.getElementById("direccion"); if (input) { input.value = direccion; input.focus(); }
+  }catch(err){ alert("No se pudo obtener ubicación. Revisa permisos."); }
 }
 
-/* ==================== Eventos ==================== */
-document.getElementById("btnGuardar").addEventListener("click", guardarRegistro);
-document.getElementById("btnExportarCSV").addEventListener("click", exportarCSV);
-document.getElementById("btnExportarJSON").addEventListener("click", exportarJSON);
-document.getElementById("btnImportarJSON").addEventListener("click", ()=> document.getElementById("importJSON").click());
-document.getElementById("importJSON").addEventListener("change", (e)=> { const f = e.target.files[0]; if (f) importarJSON(f); });
-document.getElementById("btnBorrarTodo").addEventListener("click", ()=>{
-  if (!confirm("Esto borrará todos los registros guardados localmente en este navegador. ¿Continuar?")) return;
+/* --- Eventos UI --- */
+document.getElementById("btnGuardar")?.addEventListener("click", guardarRegistro);
+document.getElementById("btnExportarCSV")?.addEventListener("click", exportarCSV);
+document.getElementById("btnExportarJSON")?.addEventListener("click", exportarJSON);
+document.getElementById("btnImportarJSON")?.addEventListener("click", ()=> document.getElementById("importJSON").click());
+document.getElementById("importJSON")?.addEventListener("change", (e)=>{ const f=e.target.files[0]; if (f) importarJSON(f); });
+document.getElementById("btnBorrarTodo")?.addEventListener("click", ()=>{
+  if (!isWriter) { alert("Solo usuarios autorizados."); return; }
+  if (!confirm("Esto borrará todos los registros locales de este navegador. ¿Continuar?")) return;
   localStorage.removeItem(KEY); renderTabla(); actualizarGraficos();
 });
-document.getElementById("btnGeo").addEventListener("click", usarUbicacion);
+document.getElementById("btnGeo")?.addEventListener("click", usarUbicacion);
+document.addEventListener("change",(e)=>{ if (e.target && e.target.id==="filtroMes") { renderTabla(); actualizarGraficos(); }});
+document.addEventListener("input",(e)=>{ if (e.target && e.target.id==="buscar") { renderTabla(); actualizarGraficos(); }});
 
-/* Filtros (la sección puede estar plegada; por eso comprobamos existencia) */
-document.addEventListener("change", (e)=>{
-  if (e.target && (e.target.id === "filtroMes")) { renderTabla(); actualizarGraficos(); }
-});
-document.addEventListener("input", (e)=>{
-  if (e.target && (e.target.id === "buscar")) { renderTabla(); actualizarGraficos(); }
-});
-
-/* ==================== Inicialización ==================== */
-initTheme();
+/* --- Inicialización --- */
 renderTabla();
 actualizarGraficos();
 </script>
+
+<!-- ==================== FIRESTORE HELPERS ==================== -->
+<script>
+async function saveToFirestore(reg){
+  await db.collection(COL).doc(reg.id).set(reg, { merge:true });
+}
+async function deleteFromFirestore(id){
+  await db.collection(COL).doc(id).delete();
+}
+</script>
+
+<!-- ==================== AUTH + PERMISOS UI (Email/Password) ==================== -->
+<script>
+// ⚠️ Reemplaza por tus 4 correos autorizados:
+const ADMIN_EMAILS = new Set([
+  "operador1@central.cl",
+  "operador2@central.cl",
+  "operador3@central.cl",
+  "administrador@central.cl"
+]);
+
+let currentUser = null;
+let isWriter = false;
+
+function updateUiPermissions(){
+  const cardRegistrar = document.getElementById('cardRegistrar');
+  if (cardRegistrar) cardRegistrar.style.display = isWriter ? '' : 'none';
+  document.querySelectorAll('button').forEach(b=>{
+    const t=(b.textContent||'').toLowerCase();
+    if (t.includes('editar') || t.includes('eliminar')) {
+      b.disabled = !isWriter; b.style.opacity = isWriter ? 1 : 0.6; b.title = isWriter ? "" : "Solo usuarios autorizados";
+    }
+  });
+  const saveBtn = document.getElementById('btnGuardar'); if (saveBtn) saveBtn.disabled = !isWriter;
+  const delAll  = document.getElementById('btnBorrarTodo'); if (delAll) delAll.disabled = !isWriter;
+}
+
+/* Login/Logout con Email/Password */
+const dlgLogin = document.getElementById('dlgLogin');
+document.getElementById('btnLogin')?.addEventListener('click', ()=>{
+  if (dlgLogin) {
+    document.getElementById('login_email').value = '';
+    document.getElementById('login_pass').value = '';
+    dlgLogin.showModal();
+  }
+});
+document.getElementById('formLogin')?.addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const email = document.getElementById('login_email').value.trim();
+  const pass  = document.getElementById('login_pass').value;
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+    dlgLogin.close();
+  } catch (e) {
+    alert("Error al iniciar sesión: " + e.message);
+  }
+});
+document.getElementById('btnLogout')?.addEventListener('click', async ()=>{
+  await auth.signOut();
+});
+
+/* Estado de sesión */
+auth.onAuthStateChanged(user=>{
+  currentUser = user;
+  isWriter = !!(user && user.email && ADMIN_EMAILS.has(user.email));
+
+  const loginBtn  = document.getElementById('btnLogin');
+  const logoutBtn = document.getElementById('btnLogout');
+  if (user) {
+    if (loginBtn)  loginBtn.style.display  = 'none';
+    if (logoutBtn) { logoutBtn.style.display = 'inline-block'; logoutBtn.textContent = `Salir (${user.email})`; }
+  } else {
+    if (loginBtn)  loginBtn.style.display  = 'inline-block';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+
+  updateUiPermissions();
+});
+
+// (Opcional) Tiempo real: descomenta para live updates
+// let unsubRealtime = null;
+// function subscribeRealtime(){
+//   if (unsubRealtime) unsubRealtime();
+//   unsubRealtime = db.collection(COL).onSnapshot(snap=>{
+//     const cloud = []; snap.forEach(doc => cloud.push(doc.data()));
+//     localStorage.setItem(KEY, JSON.stringify(cloud));
+//     renderTabla(); actualizarGraficos();
+//   });
+// }
+// subscribeRealtime();
+</script>
+
 </body>
 </html>
